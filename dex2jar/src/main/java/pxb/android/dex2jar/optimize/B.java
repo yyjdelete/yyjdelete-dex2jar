@@ -501,6 +501,43 @@ public class B extends MethodTransformerAdapter implements Opcodes {
 		System.out.println();
 	}
 
+	/**
+	 * <pre>
+	 * BEFORE:
+	 *     LDC Ljavax/servlet/GenericServlet;.class
+	 *     ASTORE 1
+	 *     LDC "/javax/servlet/LocalStrings.properties"
+	 *     ASTORE 2
+	 *     ALOAD 1
+	 *     ALOAD 2
+	 *     INVOKEVIRTUAL Ljava/lang/Class;.getResourceAsStream (Ljava/lang/String;)Ljava/io/InputStream;
+	 *     ASTORE 1
+	 *     NEW Ljava/util/PropertyResourceBundle;
+	 *     DUP
+	 *     ALOAD 1
+	 *     INVOKESPECIAL Ljava/util/PropertyResourceBundle;.&lt;init> (Ljava/io/InputStream;)V
+	 *     ASTORE 0
+	 *     ALOAD 0
+	 *     PUTSTATIC Ljavax/servlet/GenericServlet;.lStrings : Ljava/util/ResourceBundle;
+	 * </pre>
+	 * 
+	 * <pre>
+	 * AFTER:
+	 *     LDC Ljavax/servlet/GenericServlet;.class
+	 *     LDC "/javax/servlet/LocalStrings.properties"
+	 *     INVOKEVIRTUAL Ljava/lang/Class;.getResourceAsStream (Ljava/lang/String;)Ljava/io/InputStream;
+	 *     ASTORE 1
+	 *     NEW Ljava/util/PropertyResourceBundle;
+	 *     DUP
+	 *     ALOAD 1
+	 *     INVOKESPECIAL Ljava/util/PropertyResourceBundle;.&lt;init> (Ljava/io/InputStream;)V
+	 *     ASTORE 0
+	 *     ALOAD 0
+	 *     PUTSTATIC Ljavax/servlet/GenericServlet;.lStrings : Ljava/util/ResourceBundle;
+	 * </pre>
+	 * 
+	 * @param block
+	 */
 	protected void doLdc(Block block) {
 		Map<Integer, LdcInsnNode> map = new HashMap();
 		AbstractInsnNode p = block.first.getNext();
@@ -536,6 +573,37 @@ public class B extends MethodTransformerAdapter implements Opcodes {
 		}
 	}
 
+	/**
+	 * <pre>
+	 * BEFORE:
+	 *     LDC Ljavax/servlet/GenericServlet;.class
+	 *     LDC "/javax/servlet/LocalStrings.properties"
+	 *     INVOKEVIRTUAL Ljava/lang/Class;.getResourceAsStream (Ljava/lang/String;)Ljava/io/InputStream;
+	 *     ASTORE 1
+	 *     NEW Ljava/util/PropertyResourceBundle;
+	 *     DUP
+	 *     ALOAD 1
+	 *     INVOKESPECIAL Ljava/util/PropertyResourceBundle;.&lt;init> (Ljava/io/InputStream;)V
+	 *     ASTORE 0
+	 *     ALOAD 0
+	 *     PUTSTATIC Ljavax/servlet/GenericServlet;.lStrings : Ljava/util/ResourceBundle;
+	 * </pre>
+	 * 
+	 * <pre>
+	 * AFTER:
+	 *     LDC Ljavax/servlet/GenericServlet;.class
+	 *     LDC "/javax/servlet/LocalStrings.properties"
+	 *     INVOKEVIRTUAL Ljava/lang/Class;.getResourceAsStream (Ljava/lang/String;)Ljava/io/InputStream;
+	 *     ASTORE 1
+	 *     NEW Ljava/util/PropertyResourceBundle;
+	 *     DUP
+	 *     ALOAD 1
+	 *     INVOKESPECIAL Ljava/util/PropertyResourceBundle;.&lt;init> (Ljava/io/InputStream;)V
+	 *     PUTSTATIC Ljavax/servlet/GenericServlet;.lStrings : Ljava/util/ResourceBundle;
+	 * </pre>
+	 * 
+	 * @param block
+	 */
 	protected void doVar(Block block) {
 		AbstractInsnNode p = block.first.getNext();
 		while (p != null && p != block.last) {
@@ -544,11 +612,11 @@ public class B extends MethodTransformerAdapter implements Opcodes {
 				if (isRead(q)) {
 					if (isSameVar(p, q)) {
 						int var = var(p);
-
 						boolean canDel = true;
 						for (AbstractInsnNode i = q.getNext(); i != null && i != block.last; i = i.getNext()) {
 							if (isRead(i) && var == var(i)) {
 								canDel = false;
+								break;
 							}
 							if (isWrite(i) && var == var(i)) {
 								canDel = true;
@@ -586,7 +654,36 @@ public class B extends MethodTransformerAdapter implements Opcodes {
 		dump(block);
 	}
 
-	private void doReIndex(Block block) {
+	/**
+	 * <pre>
+	 * BEFORE:
+	 *     LDC Ljavax/servlet/GenericServlet;.class
+	 *     LDC "/javax/servlet/LocalStrings.properties"
+	 *     INVOKEVIRTUAL Ljava/lang/Class;.getResourceAsStream (Ljava/lang/String;)Ljava/io/InputStream;
+	 *     ASTORE 1
+	 *     NEW Ljava/util/PropertyResourceBundle;
+	 *     DUP
+	 *     ALOAD 1
+	 *     INVOKESPECIAL Ljava/util/PropertyResourceBundle;.&lt;init> (Ljava/io/InputStream;)V
+	 *     PUTSTATIC Ljavax/servlet/GenericServlet;.lStrings : Ljava/util/ResourceBundle;
+	 * </pre>
+	 * 
+	 * <pre>
+	 * AFTER:
+	 *     LDC Ljavax/servlet/GenericServlet;.class
+	 *     LDC "/javax/servlet/LocalStrings.properties"
+	 *     INVOKEVIRTUAL Ljava/lang/Class;.getResourceAsStream (Ljava/lang/String;)Ljava/io/InputStream;
+	 *     ASTORE 4
+	 *     NEW Ljava/util/PropertyResourceBundle;
+	 *     DUP
+	 *     ALOAD 4
+	 *     INVOKESPECIAL Ljava/util/PropertyResourceBundle;.&lt;init> (Ljava/io/InputStream;)V
+	 *     PUTSTATIC Ljavax/servlet/GenericServlet;.lStrings : Ljava/util/ResourceBundle;
+	 * </pre>
+	 * 
+	 * @param block
+	 */
+	protected void doReIndex(Block block) {
 		Map<Integer, Integer> map = new HashMap();
 		for (AbstractInsnNode p = block.first; p != block.last; p = p.getNext()) {
 			if (isWrite(p)) {
