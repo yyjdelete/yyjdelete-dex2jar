@@ -231,7 +231,7 @@ public class B extends MethodTransformerAdapter implements Opcodes {
 
 		long timeSpend = System.currentTimeMillis() - timeStart;
 		log.debug("spend ({}ms) init", timeSpend);
-		if (m.toString().equals("Lorg/mortbay/ijetty/console/HTMLHelper;.<clinit>()V")) {
+		if (m.toString().startsWith("Lorg/mortbay/ijetty/console/HTMLHelper;.doFooter")) {
 			log.debug("spend ({}ms) init", timeSpend);
 		}
 
@@ -488,7 +488,7 @@ public class B extends MethodTransformerAdapter implements Opcodes {
 		}
 	}
 
-	private void dump(Block block) {
+	protected void dump(Block block) {
 		AbstractInsnNode p = block.first.getNext();
 		while (p != null && !(p instanceof LabelNode)) {
 			p.accept(tr);
@@ -637,21 +637,22 @@ public class B extends MethodTransformerAdapter implements Opcodes {
 	}
 
 	public void doBlock(Block block) {
-		System.out.println("BEFORE");
-		dump(block);
+		// System.out.println("BEFORE");
+		// dump(block);
 
 		doNew(block);
-		dump(block);
+		// dump(block);
 
 		doLdc(block);
-		dump(block);
+		// dump(block);
 
 		doVar(block);
-		dump(block);
+		// dump(block);
+
 		doReIndex(block);
 
-		System.out.println("AFTER");
-		dump(block);
+		// System.out.println("AFTER");
+		// dump(block);
 	}
 
 	/**
