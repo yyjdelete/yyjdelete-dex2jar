@@ -49,8 +49,6 @@ import org.objectweb.asm.tree.TryCatchBlockNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 import org.objectweb.asm.util.TraceMethodVisitor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import pxb.android.dex2jar.Method;
 
@@ -61,7 +59,8 @@ import pxb.android.dex2jar.Method;
 @SuppressWarnings("unchecked")
 public class B extends MethodTransformerAdapter implements Opcodes {
 
-	private static final Logger log = LoggerFactory.getLogger(MethodTransformerAdapter.class);
+	// private static final Logger log =
+	// LoggerFactory.getLogger(MethodTransformerAdapter.class);
 	Method m;
 
 	public B(Method m, MethodTransformer tr) {
@@ -163,9 +162,9 @@ public class B extends MethodTransformerAdapter implements Opcodes {
 	@Override
 	public void transform(MethodNode method) {
 
-		long timeStart = System.currentTimeMillis();
+		// long timeStart = System.currentTimeMillis();
 
-		log.debug("enter {}", m);
+		// log.debug("enter {}", m);
 		int blockIndex = 0;
 		insnList = method.instructions;
 		this.method = method;
@@ -229,11 +228,13 @@ public class B extends MethodTransformerAdapter implements Opcodes {
 
 		linkBlocks();
 
-		long timeSpend = System.currentTimeMillis() - timeStart;
-		log.debug("spend ({}ms) init", timeSpend);
-		if (m.toString().startsWith("Lorg/mortbay/ijetty/console/HTMLHelper;.doFooter")) {
-			log.debug("spend ({}ms) init", timeSpend);
-		}
+		// long timeSpend = System.currentTimeMillis() - timeStart;
+		// log.debug("spend ({}ms) init", timeSpend);
+		// if
+		// (m.toString().startsWith("Lorg/mortbay/ijetty/console/HTMLHelper;.doFooter"))
+		// {
+		// log.debug("spend ({}ms) init", timeSpend);
+		// }
 
 		for (Block block : blocks) {
 			optmizeOut(block);
@@ -243,10 +244,11 @@ public class B extends MethodTransformerAdapter implements Opcodes {
 		// changeLdc_0(blocks);
 		super.transform(method);
 
-		timeSpend = System.currentTimeMillis() - timeStart;
-		if (timeSpend > 500) {
-			log.debug("spend {}s,({}ms) {}", new Object[] { timeSpend / 1000, timeSpend, m.toString() });
-		}
+		// timeSpend = System.currentTimeMillis() - timeStart;
+		// if (timeSpend > 500) {
+		// log.debug("spend {}s,({}ms) {}", new Object[] { timeSpend / 1000,
+		// timeSpend, m.toString() });
+		// }
 	}
 
 	/**
