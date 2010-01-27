@@ -154,7 +154,7 @@ public class B extends MethodTransformerAdapter implements Opcodes {
 		return ++max;
 	}
 
-	public void max(int max) {
+	private void max(int max) {
 		if (max > this.max) {
 			this.max = max;
 		}
@@ -231,7 +231,7 @@ public class B extends MethodTransformerAdapter implements Opcodes {
 
 		long timeSpend = System.currentTimeMillis() - timeStart;
 		log.debug("spend ({}ms) init", timeSpend);
-		if (m.toString().equals("Ljavax/servlet/http/Cookie;.<init>(Ljava/lang/String;Ljava/lang/String;)V")) {
+		if (m.toString().equals("Lorg/mortbay/ijetty/console/HTMLHelper;.<clinit>()V")) {
 			log.debug("spend ({}ms) init", timeSpend);
 		}
 
@@ -509,14 +509,30 @@ public class B extends MethodTransformerAdapter implements Opcodes {
 				AbstractInsnNode q = p.getNext();
 				if (isWrite(q)) {
 					Integer var = var(q);
-					if (block.out.get(var) != q) {
+					if (block.out.get(var) == null || block.out.get(var) != q) {
 						map.put(var, (LdcInsnNode) p);
+						insnList.remove(q); // remove store
+						q = p.getPrevious();
+						insnList.remove(p); // remove ldc
+						p = q;
 					}
 				}
-				p = doLdc(p, block);
-			} else {
-				p = p.getNext();
+			} else if (isRead(p)) {
+				Integer var = var(p);
+				if (block.out.get(var) == null || block.out.get(var) != p) {
+					LdcInsnNode ldc = map.get(var);
+					if (ldc != null) {
+						AbstractInsnNode _ldc_copy = ldc.clone(null);
+						insnList.insert(p, _ldc_copy);
+						insnList.remove(p);
+						p = _ldc_copy;
+					}
+				}
+			} else if (isWrite(p)) {
+				Integer var = var(p);
+				map.remove(var);
 			}
+			p = p.getNext();
 		}
 	}
 
@@ -594,32 +610,5 @@ public class B extends MethodTransformerAdapter implements Opcodes {
 				}
 			}
 		}
-	}
-
-	private AbstractInsnNode doLdc(AbstractInsnNode _ldc, Block block) {
-		AbstractInsnNode _store = _ldc.getNext();
-		if (!isWrite(_store))
-			return _store;
-
-		int var = var(_store);
-		if (block.out.get(var) == _store)
-			return _store.getNext();
-		AbstractInsnNode p = _store.getNext();
-		AbstractInsnNode pre = _ldc.getPrevious();
-		insnList.remove(_ldc);
-		insnList.remove(_store);
-		while (p != null && p != block.last) {
-			if (isRead(p) && var(p) == var) {
-				AbstractInsnNode x = _ldc.clone(null);
-				insnList.insert(p, x);
-				insnList.remove(p);
-				p = x.getNext();
-			} else if (isWrite(p) && var(p) == var) {
-				break;
-			} else {
-				p = p.getNext();
-			}
-		}
-		return pre.getNext();
 	}
 }
