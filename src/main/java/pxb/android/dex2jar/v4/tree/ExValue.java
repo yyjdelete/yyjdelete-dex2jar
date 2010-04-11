@@ -31,4 +31,7 @@ public class ExValue implements Value {
 		// Empty
 	}
 
+	public String toString() {
+		return "Exception " + type == null ? "" : type.getClassName();
+	}
 }

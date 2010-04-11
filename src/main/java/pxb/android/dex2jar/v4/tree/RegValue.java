@@ -43,4 +43,7 @@ public class RegValue implements Value {
 		}
 	}
 
+	public String toString() {
+		return "v" + reg;
+	}
 }

@@ -299,4 +299,10 @@ public class EmptyVisitor implements DexFileVisitor, DexClassVisitor, DexMethodV
 
 	}
 
+	/* (non-Javadoc)
+	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitTotalRegSize(int)
+	 */
+	public void visitTotalRegSize(int totalRegistersSize) {
+	}
+
 }

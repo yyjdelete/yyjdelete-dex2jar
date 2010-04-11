@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
@@ -54,28 +53,20 @@ import pxb.android.dex2jar.visitors.DexCodeVisitor;
  * @version $Id$
  */
 public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
-	protected Method method;
 	int _regcount = 0;
-	Map<Integer, Integer> map = new HashMap<Integer, Integer>();
 
 	/**
 	 * @param method
 	 * @param mv
 	 */
-	public V4CodeAdapter(Method method) {
+	public V4CodeAdapter() {
 		super();
-		this.method = method;
 	}
 
 	public void visitInitLocal(int... args) {
-		for (int i : args) {
-			if (i > _regcount) {
-				_regcount = i;
-			}
-		}
 	}
 
-	InsnList base;
+	InsnList base = new InsnList();
 
 	static final int ARRAY_TYPE_MAP[] = new int[] { Type.INT,// 75 OP_APUT 68 OP_AGET
 			Type.LONG, // 76 OP_APUT_WIDE 69 OP_AGET_WIDE
@@ -126,6 +117,16 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitEnd()
 	 */
 	public void visitEnd() {
+		System.out.println(base);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitTotalRegSize(int)
+	 */
+	public void visitTotalRegSize(int totalRegistersSize) {
+		_regcount = totalRegistersSize + 1;
 	}
 
 	/*
@@ -194,41 +195,41 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitFilledNewArrayIns(int, java.lang.String, int[])
 	 */
 	public void visitFilledNewArrayIns(int opcode, String type, int[] regs) {
-//		Type elem = Type.getType(type).getElementType();
-//		int shortType = elem.getSort();
-//		mv.visitLdcInsn(regs.length);
-//		switch (shortType) {
-//		case Type.BOOLEAN:
-//			mv.visitIntInsn(NEWARRAY, T_BOOLEAN);
-//			break;
-//		case Type.BYTE:
-//			mv.visitIntInsn(NEWARRAY, T_BYTE);
-//			break;
-//		case Type.CHAR:
-//			mv.visitIntInsn(NEWARRAY, T_CHAR);
-//			break;
-//		case Type.DOUBLE:
-//			mv.visitIntInsn(NEWARRAY, T_DOUBLE);
-//			break;
-//		case Type.FLOAT:
-//			mv.visitIntInsn(NEWARRAY, T_FLOAT);
-//			break;
-//		case Type.INT:
-//			mv.visitIntInsn(NEWARRAY, T_INT);
-//			break;
-//		case Type.OBJECT:
-//			mv.visitTypeInsn(ANEWARRAY, type);
-//			break;
-//		}
-//		int store = elem.getOpcode(IASTORE);
-//		int load = elem.getOpcode(ILOAD);
-//		for (int i = 0; i < regs.length; i++) {
-//			mv.visitInsn(DUP);
-//			mv.visitLdcInsn(i);
-//			mv.visitVarInsn(load, map(regs[i]));
-//			mv.visitInsn(store);
-//		}
-//		stack(4);
+		// Type elem = Type.getType(type).getElementType();
+		// int shortType = elem.getSort();
+		// mv.visitLdcInsn(regs.length);
+		// switch (shortType) {
+		// case Type.BOOLEAN:
+		// mv.visitIntInsn(NEWARRAY, T_BOOLEAN);
+		// break;
+		// case Type.BYTE:
+		// mv.visitIntInsn(NEWARRAY, T_BYTE);
+		// break;
+		// case Type.CHAR:
+		// mv.visitIntInsn(NEWARRAY, T_CHAR);
+		// break;
+		// case Type.DOUBLE:
+		// mv.visitIntInsn(NEWARRAY, T_DOUBLE);
+		// break;
+		// case Type.FLOAT:
+		// mv.visitIntInsn(NEWARRAY, T_FLOAT);
+		// break;
+		// case Type.INT:
+		// mv.visitIntInsn(NEWARRAY, T_INT);
+		// break;
+		// case Type.OBJECT:
+		// mv.visitTypeInsn(ANEWARRAY, type);
+		// break;
+		// }
+		// int store = elem.getOpcode(IASTORE);
+		// int load = elem.getOpcode(ILOAD);
+		// for (int i = 0; i < regs.length; i++) {
+		// mv.visitInsn(DUP);
+		// mv.visitLdcInsn(i);
+		// mv.visitVarInsn(load, map(regs[i]));
+		// mv.visitInsn(store);
+		// }
+		// stack(4);
 	}
 
 	/*
@@ -507,7 +508,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitLineNumber(int, int)
 	 */
 	public void visitLineNumber(int line, Label label) {
-//		mv.visitLineNumber(line, label);
+		// mv.visitLineNumber(line, label);
 	}
 
 	/*
@@ -535,7 +536,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	int stack_value = -1;
 
 	int newReg() {
-		return 0;
+		return ++_regcount;
 	}
 
 	/*
@@ -585,7 +586,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitTryCatch(int, int, int, java.lang.String)
 	 */
 	public void visitTryCatch(Label start, Label end, Label handler, String type) {
-//		mv.visitTryCatchBlock(start, end, handler, type);
+		// mv.visitTryCatchBlock(start, end, handler, type);
 		if (type == null) {
 			type = Type.getDescriptor(Throwable.class);
 		}

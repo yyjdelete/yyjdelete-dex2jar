@@ -3,6 +3,10 @@
  */
 package pxb.android.dex2jar.v4.tree;
 
+import org.objectweb.asm.Opcodes;
+
+import pxb.android.dex2jar.DexOpcodes;
+
 /**
  * 
  * a[b]=c c=a[b]
@@ -10,7 +14,7 @@ package pxb.android.dex2jar.v4.tree;
  * @author Panxiaobo
  * 
  */
-public abstract class Fn implements Value {
+public abstract class Fn implements Value, DexOpcodes, Opcodes {
 
 	/**
 	 * 
@@ -19,5 +23,5 @@ public abstract class Fn implements Value {
 		super();
 	}
 
-//	public abstract int[] inRegs();
+	// public abstract int[] inRegs();
 }

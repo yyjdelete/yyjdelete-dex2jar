@@ -32,4 +32,7 @@ public class LabelFn extends Fn {
 		mv.visitLabel(label);
 	}
 
+	public String toString() {
+		return "Label :" + label;
+	}
 }

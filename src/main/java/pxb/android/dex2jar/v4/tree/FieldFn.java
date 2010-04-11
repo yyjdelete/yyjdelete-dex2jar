@@ -130,18 +130,18 @@ public class FieldFn extends Fn {
 	// }
 	// }
 
-	// public String toString() {
-	// switch (type) {
-	// case GET_STATIC:
-	// return "v" + valueReg + "=" + Type.getType(field.getOwner()).getClassName() + "." + field.getName();
-	// case PUT_STATIC:
-	// return Type.getType(field.getOwner()).getClassName() + "." + field.getName() + "=v" + valueReg;
-	// case GET:
-	// return "v" + valueReg + "=" + "v" + ownerReg + "." + field.getName();
-	// case PUT:
-	// default:
-	// return "v" + ownerReg + "." + field.getName() + "=v" + valueReg;
-	// }
-	// }
+	public String toString() {
+		switch (type) {
+		case GET_STATIC:
+			return Type.getType(field.getOwner()).getClassName() + "." + field.getName();
+		case PUT_STATIC:
+			return Type.getType(field.getOwner()).getClassName() + "." + field.getName() + "=" + valueValue;
+		case GET:
+			return ownerValue + "." + field.getName();
+		case PUT:
+		default:
+			return "v" + ownerValue + "." + field.getName() + "=" + valueValue;
+		}
+	}
 
 }

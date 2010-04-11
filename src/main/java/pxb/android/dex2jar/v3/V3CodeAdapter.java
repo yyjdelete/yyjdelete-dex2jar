@@ -1222,4 +1222,11 @@ public class V3CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitTotalRegSize(int)
+	 */
+	public void visitTotalRegSize(int totalRegistersSize) {
+		//ignore
+	}
+
 }
