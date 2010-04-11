@@ -417,4 +417,9 @@ public interface DexCodeVisitor {
 	void visitVarInsn(int opcode, int reg);
 
 	void visitFilledNewArrayIns(int opcode, String type, int[] regs);
+
+	/**
+	 * @param totalRegistersSize
+	 */
+	void visitTotalRegSize(int totalRegistersSize);
 }

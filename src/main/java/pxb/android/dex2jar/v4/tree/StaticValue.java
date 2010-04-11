@@ -37,4 +37,8 @@ public class StaticValue implements Value {
 		mv.visitLdcInsn(value);
 	}
 
+	public String toString() {
+		return "" + value;
+	}
+
 }

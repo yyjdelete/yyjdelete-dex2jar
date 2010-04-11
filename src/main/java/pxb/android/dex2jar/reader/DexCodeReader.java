@@ -106,6 +106,7 @@ public class DexCodeReader implements DexOpcodes {
 				}
 			}
 			dcv.visitInitLocal(args);
+			dcv.visitTotalRegSize(total_registers_size);
 		}
 
 		// 处理异常处理
