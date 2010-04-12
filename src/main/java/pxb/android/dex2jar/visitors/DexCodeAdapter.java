@@ -201,4 +201,11 @@ public class DexCodeAdapter implements DexCodeVisitor {
 		dcv.visitVarInsn(opcode, reg);
 	}
 
+	/* (non-Javadoc)
+	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitTotalRegSize(int)
+	 */
+	public void visitTotalRegSize(int totalRegistersSize) {
+		dcv.visitTotalRegSize(totalRegistersSize);
+	}
+
 }
