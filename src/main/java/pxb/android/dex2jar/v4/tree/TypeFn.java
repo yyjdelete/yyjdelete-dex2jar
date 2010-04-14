@@ -54,4 +54,12 @@ public class TypeFn extends Fn implements DexOpcodes, Opcodes {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see pxb.android.dex2jar.v4.tree.Fn#inValues()
+	 */
+	@Override
+	public Value[] inValues() {
+		return asList(srcValue);
+	}
+
 }

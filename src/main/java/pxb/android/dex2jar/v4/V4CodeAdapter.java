@@ -28,6 +28,7 @@ import pxb.android.dex2jar.Field;
 import pxb.android.dex2jar.Method;
 import pxb.android.dex2jar.v4.tree.ArrayFn;
 import pxb.android.dex2jar.v4.tree.AsmdFn;
+import pxb.android.dex2jar.v4.tree.CmpFn;
 import pxb.android.dex2jar.v4.tree.EndFn;
 import pxb.android.dex2jar.v4.tree.ExValue;
 import pxb.android.dex2jar.v4.tree.FieldFn;
@@ -395,7 +396,13 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		case OP_REM_DOUBLE:
 			base.add(saveToReg, new AsmdFn(Type.DOUBLE_TYPE, opcode - OP_ADD_DOUBLE, new RegValue(opReg), new RegValue(opValueOrReg)));
 			break;
-
+		case OP_CMPL_FLOAT:
+		case OP_CMPG_FLOAT:
+		case OP_CMPL_DOUBLE:
+		case OP_CMPG_DOUBLE:
+		case OP_CMP_LONG:
+			base.add(saveToReg, new CmpFn(opcode, new RegValue(opReg), new RegValue(opValueOrReg)));
+			break;
 		default:
 			throw new RuntimeException(String.format("Not support Opcode:[0x%04x]=%s yet!", opcode, DexOpcodeDump.dump(opcode)));
 
@@ -448,7 +455,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		case OP_IF_GEZ:
 		case OP_IF_LEZ:
 		case OP_IF_LTZ:
-			base.add(new JumpFn(opcode, label, new RegValue(reg), null));
+			base.add(new JumpFn(opcode - 6, label, new RegValue(reg), new StaticValue(0)));
 			break;
 		default:
 			throw new RuntimeException(String.format("Not support Opcode:[0x%04x]=%s yet!", opcode, DexOpcodeDump.dump(opcode)));

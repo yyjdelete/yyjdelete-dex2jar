@@ -9,8 +9,6 @@ import org.objectweb.asm.Type;
 
 /**
  * 
- *store: a[b]=c ,load: c=a[b]
- * 
  * @author Panxiaobo
  * 
  */
@@ -65,20 +63,20 @@ public class ArrayFn extends Fn {
 	 * 
 	 */
 	public Value valueValue;
-	//
-	// /*
-	// * (non-Javadoc)
-	// *
-	// * @see pxb.android.dex2jar.v4.tree.Base#inRegs()
-	// */
-	// @Override
-	// public int[] inRegs() {
-	// if (load) {
-	// return new int[] { arrayValue, indexValue };
-	// } else {
-	// return new int[] { arrayValue, indexValue, valueValue };
-	// }
-	// }
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see pxb.android.dex2jar.v4.tree.Base#inRegs()
+	 */
+	@Override
+	public Value[] inValues() {
+		if (!aput) {
+			return asList(arrayValue, indexValue);
+		} else {
+			return asList(arrayValue, indexValue, valueValue);
+		}
+	}
 
 	static Type[] MAP = new Type[] { Type.INT_TYPE, Type.LONG_TYPE, Type.getType(Object.class), Type.BOOLEAN_TYPE, Type.BYTE_TYPE, Type.CHAR_TYPE,
 			Type.SHORT_TYPE,
@@ -99,26 +97,12 @@ public class ArrayFn extends Fn {
 		}
 	}
 
-	// /*
-	// * (non-Javadoc)
-	// *
-	// * @see pxb.android.dex2jar.v4.tree.Base#outReg()
-	// */
-	// @Override
-	// public int outReg() {
-	// if (load) {
-	// return valueValue;
-	// } else {
-	// return -1;
-	// }
-	// }
-	//
-	// public String toString() {
-	// if (load) {
-	// return "r" + valueValue + "=r" + arrayValue + "[r" + indexValue + "]";
-	// } else {
-	// return "r" + arrayValue + "[r" + indexValue + "]=" + "r" + valueValue;
-	// }
-	// }
+	public String toString() {
+		if (!aput) {
+			return "" + arrayValue + "[" + indexValue + "]";
+		} else {
+			return "" + arrayValue + "[" + indexValue + "]=" + valueValue;
+		}
+	}
 
 }

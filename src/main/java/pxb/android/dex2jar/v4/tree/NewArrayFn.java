@@ -45,18 +45,6 @@ public class NewArrayFn extends Fn {
 		this.demValue = demValue;
 	}
 
-	//
-	// /*
-	// * (non-Javadoc)
-	// *
-	// * @see pxb.android.dex2jar.v4.tree.Fn#inRegs()
-	// */
-	// @Override
-	// public int[] inRegs() {
-	// // TODO Auto-generated method stub
-	// return null;
-	// }
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -88,5 +76,13 @@ public class NewArrayFn extends Fn {
 			mv.visitTypeInsn(Opcodes.ANEWARRAY, arrayType.getDescriptor());
 			break;
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see pxb.android.dex2jar.v4.tree.Fn#inValues()
+	 */
+	@Override
+	public Value[] inValues() {
+		return asList(demValue);
 	}
 }

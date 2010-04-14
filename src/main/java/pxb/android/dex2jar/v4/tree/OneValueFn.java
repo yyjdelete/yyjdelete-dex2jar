@@ -131,4 +131,12 @@ public class OneValueFn extends Fn implements DexOpcodes, Opcodes {
 		value.accept(from, mv);
 		mv.visitInsn(asmOpcode);
 	}
+
+	/* (non-Javadoc)
+	 * @see pxb.android.dex2jar.v4.tree.Fn#inValues()
+	 */
+	@Override
+	public Value[] inValues() {
+		return asList(value);
+	}
 }

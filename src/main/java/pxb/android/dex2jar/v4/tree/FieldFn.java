@@ -66,25 +66,25 @@ public class FieldFn extends Fn {
 	public Value ownerValue;
 	public Value valueValue;
 
-	// /*
-	// * (non-Javadoc)
-	// *
-	// * @see pxb.android.dex2jar.v4.tree.Base#inRegs()
-	// */
-	// @Override
-	// public int[] inRegs() {
-	// switch (type) {
-	// case PUT:
-	// return new int[] { ownerReg, valueReg };
-	// case GET:
-	// return new int[] { ownerReg };
-	// case GET_STATIC:
-	// return new int[0];
-	// case PUT_STATIC:
-	// default:
-	// return new int[] { valueReg };
-	// }
-	// }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see pxb.android.dex2jar.v4.tree.Base#inRegs()
+	 */
+	@Override
+	public Value[] inValues() {
+		switch (type) {
+		case PUT:
+			return new Value[] { ownerValue, valueValue };
+		case GET:
+			return new Value[] { ownerValue };
+		case GET_STATIC:
+			return new Value[0];
+		case PUT_STATIC:
+		default:
+			return new Value[] { valueValue };
+		}
+	}
 
 	static Type[] MAP = new Type[] { Type.INT_TYPE, Type.LONG_TYPE, Type.getType(Object.class), Type.BOOLEAN_TYPE, Type.BYTE_TYPE, Type.CHAR_TYPE,
 			Type.SHORT_TYPE,
@@ -112,24 +112,6 @@ public class FieldFn extends Fn {
 		}
 	}
 
-	// /*
-	// * (non-Javadoc)
-	// *
-	// * @see pxb.android.dex2jar.v4.tree.Base#outReg()
-	// */
-	// @Override
-	// public int outReg() {
-	// switch (type) {
-	// case GET:
-	// case GET_STATIC:
-	// return valueReg;
-	// case PUT:
-	// case PUT_STATIC:
-	// default:
-	// return -1;
-	// }
-	// }
-
 	public String toString() {
 		switch (type) {
 		case GET_STATIC:
@@ -140,7 +122,7 @@ public class FieldFn extends Fn {
 			return ownerValue + "." + field.getName();
 		case PUT:
 		default:
-			return "v" + ownerValue + "." + field.getName() + "=" + valueValue;
+			return "" + ownerValue + "." + field.getName() + "=" + valueValue;
 		}
 	}
 
