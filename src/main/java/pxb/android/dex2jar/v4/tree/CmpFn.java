@@ -19,7 +19,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
 /**
- * @author Panxiaobo
+ * @author Panxiaobo [pxb1988@gmail.com]
  * 
  */
 public class CmpFn extends Fn {
