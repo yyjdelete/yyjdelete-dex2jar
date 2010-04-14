@@ -16,7 +16,9 @@
 package pxb.android.dex2jar.v4;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
@@ -50,11 +52,11 @@ import pxb.android.dex2jar.v4.tree.Value;
 import pxb.android.dex2jar.visitors.DexCodeVisitor;
 
 /**
- * @author Panxiaobo [pxb1988@126.com]
+ * @author Panxiaobo [pxb1988@gmail.com]
  * @version $Id$
  */
 public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
-	int _regcount = 0;
+	protected int _regcount = 0;
 
 	/**
 	 * @param method
@@ -67,7 +69,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	public void visitInitLocal(int... args) {
 	}
 
-	InsnList base = new InsnList();
+	protected InsnList insnList = new InsnList();
 
 	static final int ARRAY_TYPE_MAP[] = new int[] { Type.INT,// 75 OP_APUT 68 OP_AGET
 			Type.LONG, // 76 OP_APUT_WIDE 69 OP_AGET_WIDE
@@ -88,9 +90,9 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		// 69~74 get
 		try {
 			if (opcode >= OP_APUT) {
-				base.add(ArrayFn.aput(ARRAY_TYPE_MAP[opcode - OP_APUT], new RegValue(array), new RegValue(index), new RegValue(regFromOrTo)));
+				insnList.add(ArrayFn.aput(ARRAY_TYPE_MAP[opcode - OP_APUT], new RegValue(array), new RegValue(index), new RegValue(regFromOrTo)));
 			} else {
-				base.add(regFromOrTo, ArrayFn.aget(ARRAY_TYPE_MAP[opcode - OP_AGET], new RegValue(array), new RegValue(index)));
+				insnList.add(regFromOrTo, ArrayFn.aget(ARRAY_TYPE_MAP[opcode - OP_AGET], new RegValue(array), new RegValue(index)));
 			}
 		} catch (Exception e) {
 			throw new RuntimeException(String.format("Exception on Opcode:[0x%04x]=%s", opcode, DexOpcodeDump.dump(opcode)), e);
@@ -105,7 +107,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	public void visitArrayInsn(int opcode, String type, int saveToReg, int demReg) {
 		switch (opcode) {
 		case OP_NEW_ARRAY:
-			base.add(saveToReg, new NewArrayFn(Type.getType(type), new RegValue(demReg)));
+			insnList.add(saveToReg, new NewArrayFn(Type.getType(type), new RegValue(demReg)));
 			break;
 		default:
 			throw new RuntimeException(String.format("Not support Opcode:[0x%04x]=%s yet!", opcode, DexOpcodeDump.dump(opcode)));
@@ -118,7 +120,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitEnd()
 	 */
 	public void visitEnd() {
-		System.out.println(base);
+		System.out.println(insnList);
 	}
 
 	/*
@@ -144,7 +146,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		case OP_IGET_BYTE:
 		case OP_IGET_CHAR:
 		case OP_IGET_SHORT:
-			base.add(regFromOrTo, FieldFn.get(field, new RegValue(ownerReg)));
+			insnList.add(regFromOrTo, FieldFn.get(field, new RegValue(ownerReg)));
 			break;
 
 		case OP_IPUT:
@@ -154,7 +156,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		case OP_IPUT_BYTE:
 		case OP_IPUT_CHAR:
 		case OP_IPUT_SHORT:
-			base.add(FieldFn.put(field, new RegValue(ownerReg), new RegValue(regFromOrTo)));
+			insnList.add(FieldFn.put(field, new RegValue(ownerReg), new RegValue(regFromOrTo)));
 			break;
 		case OP_SGET_OBJECT:// sget-object
 		case OP_SGET:
@@ -163,7 +165,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		case OP_SGET_BYTE:
 		case OP_SGET_CHAR:
 		case OP_SGET_SHORT:
-			base.add(regFromOrTo, FieldFn.static_get(field));
+			insnList.add(regFromOrTo, FieldFn.static_get(field));
 			break;
 
 		case OP_SPUT_OBJECT:
@@ -173,7 +175,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		case OP_SPUT_BYTE:
 		case OP_SPUT_CHAR:
 		case OP_SPUT_SHORT:
-			base.add(FieldFn.static_put(field, new RegValue(regFromOrTo)));
+			insnList.add(FieldFn.static_put(field, new RegValue(regFromOrTo)));
 			break;
 		default:
 			throw new RuntimeException(String.format("Not support Opcode:[0x%04x]=%s yet!", opcode, DexOpcodeDump.dump(opcode)));
@@ -187,7 +189,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitFillArrayInsn(int, int, int, int, java.lang.Object[])
 	 */
 	public void visitFillArrayInsn(int opcode, int reg, int elemWidth, int initLength, Object[] values) {
-		base.add(reg, new FillArrayFn(new RegValue(reg), values, elemWidth));
+		insnList.add(reg, new FillArrayFn(new RegValue(reg), values, elemWidth));
 	}
 
 	/*
@@ -252,7 +254,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		case OP_SHL_INT_2ADDR:
 		case OP_SHR_INT_2ADDR:
 		case OP_USHR_INT_2ADDR:
-			base.add(saveToReg, new AsmdFn(Type.INT_TYPE, opcode - OP_ADD_INT_2ADDR, new RegValue(saveToReg), new RegValue(opReg)));
+			insnList.add(saveToReg, new AsmdFn(Type.INT_TYPE, opcode - OP_ADD_INT_2ADDR, new RegValue(saveToReg), new RegValue(opReg)));
 			break;
 		case OP_ADD_LONG_2ADDR:
 		case OP_SUB_LONG_2ADDR:
@@ -265,14 +267,14 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		case OP_SHL_LONG_2ADDR:
 		case OP_SHR_LONG_2ADDR:
 		case OP_USHR_LONG_2ADDR:
-			base.add(saveToReg, new AsmdFn(Type.LONG_TYPE, opcode - OP_ADD_LONG_2ADDR, new RegValue(saveToReg), new RegValue(opReg)));
+			insnList.add(saveToReg, new AsmdFn(Type.LONG_TYPE, opcode - OP_ADD_LONG_2ADDR, new RegValue(saveToReg), new RegValue(opReg)));
 			break;
 		case OP_ADD_FLOAT_2ADDR:
 		case OP_SUB_FLOAT_2ADDR:
 		case OP_MUL_FLOAT_2ADDR:
 		case OP_DIV_FLOAT_2ADDR:
 		case OP_REM_FLOAT_2ADDR:
-			base.add(saveToReg, new AsmdFn(Type.FLOAT_TYPE, opcode - OP_ADD_FLOAT_2ADDR, new RegValue(saveToReg), new RegValue(opReg)));
+			insnList.add(saveToReg, new AsmdFn(Type.FLOAT_TYPE, opcode - OP_ADD_FLOAT_2ADDR, new RegValue(saveToReg), new RegValue(opReg)));
 
 			break;
 		case OP_ADD_DOUBLE_2ADDR:
@@ -280,7 +282,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		case OP_MUL_DOUBLE_2ADDR:
 		case OP_DIV_DOUBLE_2ADDR:
 		case OP_REM_DOUBLE_2ADDR:
-			base.add(saveToReg, new AsmdFn(Type.DOUBLE_TYPE, opcode - OP_ADD_DOUBLE_2ADDR, new RegValue(saveToReg), new RegValue(opReg)));
+			insnList.add(saveToReg, new AsmdFn(Type.DOUBLE_TYPE, opcode - OP_ADD_DOUBLE_2ADDR, new RegValue(saveToReg), new RegValue(opReg)));
 			break;
 		case OP_NEG_INT:
 		case OP_NEG_DOUBLE:
@@ -302,11 +304,11 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		case OP_FLOAT_TO_LONG:
 		case OP_FLOAT_TO_DOUBLE:
 
-			base.add(saveToReg, new OneValueFn(opcode, new RegValue(opReg)));
+			insnList.add(saveToReg, new OneValueFn(opcode, new RegValue(opReg)));
 
 			break;
 		case OP_ARRAY_LENGTH:
-			base.add(saveToReg, new OneValueFn(opcode, new RegValue(opReg)));
+			insnList.add(saveToReg, new OneValueFn(opcode, new RegValue(opReg)));
 
 			break;
 		case OP_MOVE_OBJECT:
@@ -315,7 +317,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		case OP_MOVE_WIDE:
 		case OP_MOVE_FROM16:
 		case OP_MOVE_WIDE_FROM16: {
-			base.add(saveToReg, new RegValue(opReg));
+			insnList.add(saveToReg, new RegValue(opReg));
 		}
 			break;
 		default:
@@ -342,7 +344,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		case OP_SHL_INT_LIT8:
 		case OP_SHR_INT_LIT8:
 		case OP_USHR_INT_LIT8:
-			base.add(saveToReg, new AsmdFn(Type.INT_TYPE, opcode - OP_ADD_INT_LIT8, new RegValue(opReg), new StaticValue(opValueOrReg)));
+			insnList.add(saveToReg, new AsmdFn(Type.INT_TYPE, opcode - OP_ADD_INT_LIT8, new RegValue(opReg), new StaticValue(opValueOrReg)));
 			break;
 
 		case OP_ADD_INT_LIT16:
@@ -353,7 +355,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		case OP_AND_INT_LIT16:
 		case OP_OR_INT_LIT16:
 		case OP_XOR_INT_LIT16:
-			base.add(saveToReg, new AsmdFn(Type.INT_TYPE, opcode - OP_ADD_INT_LIT16, new RegValue(opReg), new StaticValue(opValueOrReg)));
+			insnList.add(saveToReg, new AsmdFn(Type.INT_TYPE, opcode - OP_ADD_INT_LIT16, new RegValue(opReg), new StaticValue(opValueOrReg)));
 			break;
 
 		case OP_ADD_INT:
@@ -367,7 +369,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		case OP_SHL_INT:
 		case OP_SHR_INT:
 		case OP_USHR_INT:
-			base.add(saveToReg, new AsmdFn(Type.INT_TYPE, opcode - OP_ADD_INT, new RegValue(opReg), new RegValue(opValueOrReg)));
+			insnList.add(saveToReg, new AsmdFn(Type.INT_TYPE, opcode - OP_ADD_INT, new RegValue(opReg), new RegValue(opValueOrReg)));
 			break;
 		case OP_ADD_LONG:
 		case OP_SUB_LONG:
@@ -380,28 +382,28 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		case OP_SHL_LONG:
 		case OP_SHR_LONG:
 		case OP_USHR_LONG:
-			base.add(saveToReg, new AsmdFn(Type.LONG_TYPE, opcode - OP_ADD_LONG, new RegValue(opReg), new RegValue(opValueOrReg)));
+			insnList.add(saveToReg, new AsmdFn(Type.LONG_TYPE, opcode - OP_ADD_LONG, new RegValue(opReg), new RegValue(opValueOrReg)));
 			break;
 		case OP_ADD_FLOAT:
 		case OP_SUB_FLOAT:
 		case OP_MUL_FLOAT:
 		case OP_DIV_FLOAT:
 		case OP_REM_FLOAT:
-			base.add(saveToReg, new AsmdFn(Type.FLOAT_TYPE, opcode - OP_ADD_FLOAT, new RegValue(opReg), new RegValue(opValueOrReg)));
+			insnList.add(saveToReg, new AsmdFn(Type.FLOAT_TYPE, opcode - OP_ADD_FLOAT, new RegValue(opReg), new RegValue(opValueOrReg)));
 			break;
 		case OP_ADD_DOUBLE:
 		case OP_SUB_DOUBLE:
 		case OP_MUL_DOUBLE:
 		case OP_DIV_DOUBLE:
 		case OP_REM_DOUBLE:
-			base.add(saveToReg, new AsmdFn(Type.DOUBLE_TYPE, opcode - OP_ADD_DOUBLE, new RegValue(opReg), new RegValue(opValueOrReg)));
+			insnList.add(saveToReg, new AsmdFn(Type.DOUBLE_TYPE, opcode - OP_ADD_DOUBLE, new RegValue(opReg), new RegValue(opValueOrReg)));
 			break;
 		case OP_CMPL_FLOAT:
 		case OP_CMPG_FLOAT:
 		case OP_CMPL_DOUBLE:
 		case OP_CMPG_DOUBLE:
 		case OP_CMP_LONG:
-			base.add(saveToReg, new CmpFn(opcode, new RegValue(opReg), new RegValue(opValueOrReg)));
+			insnList.add(saveToReg, new CmpFn(opcode, new RegValue(opReg), new RegValue(opValueOrReg)));
 			break;
 		default:
 			throw new RuntimeException(String.format("Not support Opcode:[0x%04x]=%s yet!", opcode, DexOpcodeDump.dump(opcode)));
@@ -417,7 +419,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	public void visitInsn(int opcode) {
 		switch (opcode) {
 		case OP_RETURN_VOID:
-			base.add(new EndFn(opcode, null));
+			insnList.add(new EndFn(opcode, null));
 			break;
 		default:
 			throw new RuntimeException(String.format("Not support Opcode:[0x%04x]=%s yet!", opcode, DexOpcodeDump.dump(opcode)));
@@ -433,7 +435,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		switch (opcode) {
 		case OP_GOTO:
 		case OP_GOTO_16: {
-			base.add(new GotoFn(label));
+			insnList.add(new GotoFn(label));
 		}
 			break;
 		default:
@@ -455,7 +457,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		case OP_IF_GEZ:
 		case OP_IF_LEZ:
 		case OP_IF_LTZ:
-			base.add(new JumpFn(opcode - 6, label, new RegValue(reg), new StaticValue(0)));
+			insnList.add(new JumpFn(opcode - 6, label, new RegValue(reg), new StaticValue(0)));
 			break;
 		default:
 			throw new RuntimeException(String.format("Not support Opcode:[0x%04x]=%s yet!", opcode, DexOpcodeDump.dump(opcode)));
@@ -468,7 +470,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitJumpInsn(int, int, int, int)
 	 */
 	public void visitJumpInsn(int opcode, Label label, int reg1, int reg2) {
-		base.add(new JumpFn(opcode, label, new RegValue(reg1), new RegValue(reg2)));
+		insnList.add(new JumpFn(opcode, label, new RegValue(reg1), new RegValue(reg2)));
 	}
 
 	/*
@@ -477,10 +479,10 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitLabel(int)
 	 */
 	public void visitLabel(Label label) {
-		base.add(new LabelFn(label));
+		insnList.add(new LabelFn(label));
 		if (handlers.containsKey(label)) {
 			stack_value = newReg();
-			base.add(stack_value, new ExValue(handlers.get(label)));
+			insnList.add(stack_value, new ExValue(handlers.get(label)));
 		}
 	}
 
@@ -501,7 +503,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		case OP_CONST_WIDE_16:
 		case OP_CONST_WIDE_32:
 		case OP_CONST_WIDE_HIGH16:
-			base.add(reg, new StaticValue(value));
+			insnList.add(reg, new StaticValue(value));
 			break;
 		default:
 			throw new RuntimeException(String.format("Not support Opcode:[0x%04x]=%s yet!", opcode, DexOpcodeDump.dump(opcode)));
@@ -535,14 +537,14 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	public void visitLookupSwitchInsn(int opcode, int reg, Label defaultOffset, int[] cases, Label[] labels) {
 		switch (opcode) {
 		case OP_SPARSE_SWITCH:
-			base.add(new LookupSwitchFn(new RegValue(reg), defaultOffset, cases, labels));
+			insnList.add(new LookupSwitchFn(new RegValue(reg), defaultOffset, cases, labels));
 			break;
 		}
 	}
 
-	int stack_value = -1;
+	private int stack_value = -1;
 
-	int newReg() {
+	protected int newReg() {
 		return ++_regcount;
 	}
 
@@ -561,13 +563,19 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		}
 		MethodFn mfn = new MethodFn(opcode, method, argValues);
 		if (method.getName().equals("<init>")) {
-			base.add(args[0], mfn);
+			if (NEW_INS.remove(args[0])) {
+				insnList.add(args[0], mfn);
+			} else {
+				mfn.invorkSuper = true;
+				insnList.add(mfn);
+			}
+
 		} else {
 			if (!Type.VOID_TYPE.equals(ret)) {
 				stack_value = newReg();
-				base.add(stack_value, mfn);
+				insnList.add(stack_value, mfn);
 			} else {
-				base.add(mfn);
+				insnList.add(mfn);
 			}
 		}
 	}
@@ -580,12 +588,12 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	public void visitTableSwitchInsn(int opcode, int reg, int first_case, int last_case, Label default_label, Label[] labels) {
 		switch (opcode) {
 		case OP_PACKED_SWITCH:
-			base.add(new TableSwitchFn(new RegValue(reg), first_case, last_case, default_label, labels));
+			insnList.add(new TableSwitchFn(new RegValue(reg), first_case, last_case, default_label, labels));
 			break;
 		}
 	}
 
-	private Map<Label, Type> handlers = new HashMap<Label, Type>();
+	protected Map<Label, Type> handlers = new HashMap<Label, Type>();
 
 	/*
 	 * (non-Javadoc)
@@ -600,7 +608,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		handlers.put(handler, Type.getType(type));
 	}
 
-	Map<Integer, Label> _labels = new HashMap<Integer, Label>();
+	protected Set<Integer> NEW_INS = new HashSet<Integer>();
 
 	/*
 	 * (non-Javadoc)
@@ -610,10 +618,10 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	public void visitTypeInsn(int opcode, String type, int toReg) {
 		switch (opcode) {
 		case OP_NEW_INSTANCE:
-			// ignore
+			NEW_INS.add(toReg);
 			break;
 		case OP_CHECK_CAST: {
-			base.add(toReg, new TypeFn(opcode, Type.getType(type), new RegValue(toReg)));
+			insnList.add(toReg, new TypeFn(opcode, Type.getType(type), new RegValue(toReg)));
 		}
 			break;
 		default:
@@ -629,7 +637,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	public void visitTypeInsn(int opcode, String type, int toReg, int fromReg) {
 		switch (opcode) {
 		case OP_INSTANCE_OF:
-			base.add(toReg, new TypeFn(opcode, Type.getType(type), new RegValue(fromReg)));
+			insnList.add(toReg, new TypeFn(opcode, Type.getType(type), new RegValue(fromReg)));
 			break;
 		default:
 			throw new RuntimeException(String.format("Not support Opcode:[0x%04x]=%s yet!", opcode, DexOpcodeDump.dump(opcode)));
@@ -647,17 +655,17 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		case OP_MOVE_RESULT:
 		case OP_MOVE_EXCEPTION:
 		case OP_MOVE_RESULT_WIDE:
-			base.add(reg, new RegValue(stack_value));
+			insnList.add(reg, new RegValue(stack_value));
 			break;
 		case OP_THROW:
 		case OP_RETURN:
 		case OP_RETURN_OBJECT:
 		case OP_RETURN_WIDE:
-			base.add(new EndFn(opcode, new RegValue(reg)));
+			insnList.add(new EndFn(opcode, new RegValue(reg)));
 			break;
 		case OP_MONITOR_ENTER:
 		case OP_MONITOR_EXIT: {
-			base.add(new SimpleFn(opcode, new RegValue(reg)));
+			insnList.add(new SimpleFn(opcode, new RegValue(reg)));
 		}
 			break;
 		default:

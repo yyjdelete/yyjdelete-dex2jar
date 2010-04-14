@@ -10,10 +10,13 @@ import java.util.Iterator;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
+import pxb.android.dex2jar.Method;
 import pxb.android.dex2jar.reader.DexFileReader;
 import pxb.android.dex2jar.v3.V3AccessFlagsAdapter;
 import pxb.android.dex2jar.v4.V4CodeAdapter;
+import pxb.android.dex2jar.v4.optimize.Optimizer;
 import pxb.android.dex2jar.visitors.DexCodeVisitor;
+import pxb.android.dex2jar.visitors.DexMethodVisitor;
 import pxb.android.dex2jar.visitors.EmptyVisitor;
 
 /**
@@ -32,15 +35,22 @@ public class V4Test {
 			V3AccessFlagsAdapter afa = new V3AccessFlagsAdapter();
 			reader.accept(afa);
 			reader.accept(new EmptyVisitor() {
+				Method method;
 
-				/*
-				 * (non-Javadoc)
-				 * 
-				 * @see pxb.android.dex2jar.visitors.EmptyVisitor#visitCode()
-				 */
+				@Override
+				public DexMethodVisitor visitMethod(Method method) {
+					this.method = method;
+					return super.visitMethod(method);
+				}
+
 				@Override
 				public DexCodeVisitor visitCode() {
-					return new V4CodeAdapter();
+					return new V4CodeAdapter() {
+						public void visitEnd() {
+							super.visitEnd();
+							new Optimizer(method, this.insnList).optimize();
+						}
+					};
 				}
 
 			});

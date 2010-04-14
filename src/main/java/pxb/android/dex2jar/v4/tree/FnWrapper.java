@@ -15,29 +15,45 @@
  */
 package pxb.android.dex2jar.v4.tree;
 
-import org.objectweb.asm.Opcodes;
-
-import pxb.android.dex2jar.DexOpcodes;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
 
 /**
- * 
- * a[b]=c c=a[b]
- * 
  * @author Panxiaobo [pxb1988@gmail.com]
  * 
  */
-public abstract class Fn implements Value, DexOpcodes, Opcodes {
+public class FnWrapper extends Fn {
+
+	Value[] inValues;
+	Fn fn;
 
 	/**
-	 * 
+	 * @param fn
+	 * @param inValues
 	 */
-	public Fn() {
+	public FnWrapper(Fn fn, Value[] inValues) {
 		super();
+		this.fn = fn;
+		this.inValues = inValues;
 	}
 
-	public abstract Value[] inValues();
-
-	protected Value[] asList(Value... vs) {
-		return vs;
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see pxb.android.dex2jar.v4.tree.Fn#inValues()
+	 */
+	@Override
+	public Value[] inValues() {
+		return inValues;
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see pxb.android.dex2jar.v4.tree.Value#accept(org.objectweb.asm.Type, org.objectweb.asm.MethodVisitor)
+	 */
+	public void accept(Type suggest, MethodVisitor mv) {
+		fn.accept(suggest, mv);
+	}
+
 }
