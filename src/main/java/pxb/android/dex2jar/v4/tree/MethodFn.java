@@ -37,8 +37,43 @@ public class MethodFn extends Fn {
 	 * @see pxb.android.dex2jar.v4.tree.Value#accept(org.objectweb.asm.Type, org.objectweb.asm.MethodVisitor)
 	 */
 	public void accept(Type suggest, MethodVisitor mv) {
-		// TODO Auto-generated method stub
-
+		String types[] = method.getType().getParameterTypes();
+		switch (opcode) {
+		case OP_INVOKE_STATIC: {
+			for (int j = 0; j < types.length; j++) {
+				args[j].accept(Type.getType(types[j]), mv);
+			}
+			mv.visitMethodInsn(INVOKESTATIC, method.getOwner(), method.getName(), method.getType().getDesc());
+		}
+			break;
+		case OP_INVOKE_VIRTUAL:
+			for (int j = 0; j < types.length; j++) {
+				args[j].accept(Type.getType(types[j]), mv);
+			}
+			mv.visitMethodInsn(INVOKEVIRTUAL, method.getOwner(), method.getName(), method.getType().getDesc());
+			break;
+		case OP_INVOKE_INTERFACE:
+			for (int j = 0; j < types.length; j++) {
+				args[j].accept(Type.getType(types[j]), mv);
+			}
+			mv.visitMethodInsn(INVOKEINTERFACE, method.getOwner(), method.getName(), method.getType().getDesc());
+			break;
+		case OP_INVOKE_SUPER: {
+			for (int j = 0; j < types.length; j++) {
+				args[j].accept(Type.getType(types[j]), mv);
+			}
+			mv.visitMethodInsn(INVOKESPECIAL, method.getOwner(), method.getName(), method.getType().getDesc());
+			break;
+		}
+		case OP_INVOKE_DIRECT:
+			mv.visitTypeInsn(NEW, types[0]);
+			mv.visitInsn(DUP);
+			for (int j = 1; j < types.length; j++) {
+				args[j].accept(Type.getType(types[j]), mv);
+			}
+			mv.visitMethodInsn(INVOKESPECIAL, method.getOwner(), method.getName(), method.getType().getDesc());
+			break;
+		}
 	}
 
 	public String toString() {
@@ -75,6 +110,22 @@ public class MethodFn extends Fn {
 		}
 		}
 		return "";
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see pxb.android.dex2jar.v4.tree.Fn#inValues()
+	 */
+	@Override
+	public Value[] inValues() {
+		if (method.getName().equals("<init>")) {
+			Value[] v = new Value[args.length - 1];
+			System.arraycopy(args, 0, v, 0, v.length);
+			return v;
+		} else {
+			return args;
+		}
 	}
 
 }

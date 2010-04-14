@@ -36,14 +36,28 @@ public class RegValue implements Value {
 	}
 
 	public void accept(Type type, MethodVisitor mv) {
-		if (type == null) {
-			mv.visitVarInsn(this.type.getOpcode(Opcodes.ILOAD), reg);
+		if (replace != null) {
+			replace.accept(type, mv);
 		} else {
-			mv.visitVarInsn(type.getOpcode(Opcodes.ILOAD), reg);
+			if (type == null) {
+				mv.visitVarInsn(this.type.getOpcode(Opcodes.ILOAD), reg);
+			} else {
+				mv.visitVarInsn(type.getOpcode(Opcodes.ILOAD), reg);
+			}
 		}
 	}
 
+	private Value replace;
+
+	public void replace(Value value) {
+		this.replace = value;
+	}
+
 	public String toString() {
-		return "v" + reg;
+		if (replace != null) {
+			return replace.toString();
+		} else {
+			return "v" + reg;
+		}
 	}
 }

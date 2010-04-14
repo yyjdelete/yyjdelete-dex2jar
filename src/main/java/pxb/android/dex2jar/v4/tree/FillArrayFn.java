@@ -60,4 +60,17 @@ public class FillArrayFn extends Fn {
 			mv.visitInsn(op);
 		}
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see pxb.android.dex2jar.v4.tree.Fn#inValues()
+	 */
+	@Override
+	public Value[] inValues() {
+		Value[] v = new Value[1 + values.length];
+		v[0] = arrayValue;
+		System.arraycopy(values, 0, v, 1, values.length);
+		return v;
+	}
 }

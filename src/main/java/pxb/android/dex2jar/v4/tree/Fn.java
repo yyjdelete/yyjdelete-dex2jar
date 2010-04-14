@@ -23,5 +23,9 @@ public abstract class Fn implements Value, DexOpcodes, Opcodes {
 		super();
 	}
 
-	// public abstract int[] inRegs();
+	public abstract Value[] inValues();
+
+	protected Value[] asList(Value... vs) {
+		return vs;
+	}
 }

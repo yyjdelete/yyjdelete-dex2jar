@@ -40,4 +40,12 @@ public class LookupSwitchFn extends Fn {
 		value.accept(Type.INT_TYPE, mv);
 		mv.visitLookupSwitchInsn(defaultOffset, cases, labels);
 	}
+
+	/* (non-Javadoc)
+	 * @see pxb.android.dex2jar.v4.tree.Fn#inValues()
+	 */
+	@Override
+	public Value[] inValues() {
+		return asList(value);
+	}
 }
