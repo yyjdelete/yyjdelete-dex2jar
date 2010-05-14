@@ -15,8 +15,6 @@
  */
 package pxb.android.dex2jar.reader;
 
-import java.util.Map;
-
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
 
@@ -35,28 +33,21 @@ import pxb.android.dex2jar.visitors.DexCodeVisitor;
 public class DexOpcodeAdapter implements DexOpcodes, DexInternalOpcode {
 	private DexCodeVisitor dcv;
 	private Dex dex;
-	Map<Integer, Label> labels;
 
 	/**
 	 * @param dex
 	 * @param dcv2
 	 * @param labels
 	 */
-	public DexOpcodeAdapter(Dex dex, DexCodeVisitor dcv2, Map<Integer, Label> labels) {
+	public DexOpcodeAdapter(Dex dex, DexCodeVisitor dcv2) {
 		this.dex = dex;
 		this.dcv = dcv2;
-		this.labels = labels;
 	}
 
 	// private static final Logger log =
 	// LoggerFactory.getLogger(ToAsmDexOpcodeAdapter.class);
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see pxb.android.dex2jar.visitors.DexOpcodeVisitor#visit(int, int)
-	 */
-	public void visit(int opcode, int arg1) {
+	public void visit(int opcode, int arg1, Label toLabel) {
 
 		switch (opcode) {
 
@@ -132,7 +123,7 @@ public class DexOpcodeAdapter implements DexOpcodes, DexInternalOpcode {
 		}
 			break;
 		case OP_GOTO: {
-			dcv.visitJumpInsn(opcode, this.labels.get(offset + ((byte) arg1)));
+			dcv.visitJumpInsn(opcode, toLabel);
 		}
 			break;
 		case OP_RETURN_VOID: {
@@ -169,12 +160,7 @@ public class DexOpcodeAdapter implements DexOpcodes, DexInternalOpcode {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see pxb.android.dex2jar.visitors.DexOpcodeVisitor#visit(int, int, int)
-	 */
-	public void visit(int opcode, int arg1, int arg2) {
+	public void visit(int opcode, int arg1, int arg2, Label to) {
 		switch (opcode) {
 		case OP_NEW_INSTANCE:
 		case OP_CHECK_CAST: {
@@ -233,7 +219,7 @@ public class DexOpcodeAdapter implements DexOpcodes, DexInternalOpcode {
 		case OP_IF_GTZ:
 		case OP_IF_LEZ: //
 		{
-			dcv.visitJumpInsn(opcode, this.labels.get(offset + arg2), arg1);
+			dcv.visitJumpInsn(opcode, to, arg1);
 		}
 			break;
 		case OP_IF_EQ:
@@ -244,7 +230,7 @@ public class DexOpcodeAdapter implements DexOpcodes, DexInternalOpcode {
 		case OP_IF_LE: {
 			int reg1 = arg1 & 0xf;
 			int reg2 = (arg1 >> 4) & 0xf;
-			dcv.visitJumpInsn(opcode, this.labels.get(offset + arg2), reg1, reg2);
+			dcv.visitJumpInsn(opcode, to, reg1, reg2);
 		}
 			break;
 		case OP_IGET_BOOLEAN:
@@ -379,7 +365,7 @@ public class DexOpcodeAdapter implements DexOpcodes, DexInternalOpcode {
 		}
 			break;
 		case OP_GOTO_16: {
-			dcv.visitJumpInsn(opcode, this.labels.get(offset + arg2));
+			dcv.visitJumpInsn(opcode, to);
 		}
 			break;
 		case OP_MOVE_OBJECT_FROM16:
@@ -499,11 +485,5 @@ public class DexOpcodeAdapter implements DexOpcodes, DexInternalOpcode {
 			a[4] = arg1 & 0xf;
 		}
 		return a;
-	}
-
-	int offset;
-
-	public void visitOffset(int i) {
-		this.offset = i;
 	}
 }

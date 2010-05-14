@@ -523,29 +523,26 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 	 */
 	@Override
 	public void visitLabel(Label label) {
-		boolean find = false;
 		for (TryCatch tc : trys) {
 			if (label.equals(tc.end)) {
 				info(-1, " } // TC_%d", trys.indexOf(tc));
-				find = true;
 				break;
 			}
-
 		}
 		out.printf("%-20s|%5s:\n", "LABEL", "L" + labels(label));
-		if (!find) {
-			for (TryCatch tc : trys) {
-				if (label.equals(tc.start)) {
-					info(-1, "try { // TC_%d ", trys.indexOf(tc));
-					break;
-				}
-				if (label.equals(tc.handler)) {
-					String t = tc.type;
-					info(-1, "catch(%s) // TC_%d", t == null ? "all" : t, trys.indexOf(tc));
-					break;
-				}
+
+		for (TryCatch tc : trys) {
+			if (label.equals(tc.start)) {
+				info(-1, "try { // TC_%d ", trys.indexOf(tc));
+				break;
+			}
+			if (label.equals(tc.handler)) {
+				String t = tc.type;
+				info(-1, "catch(%s) // TC_%d", t == null ? "all" : t, trys.indexOf(tc));
+				break;
 			}
 		}
+
 		super.visitLabel(label);
 	}
 
@@ -561,7 +558,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 		else if (value instanceof Type) {
 			info(opcode, "v%d=%s.class", reg, ((Type) value).getClassName());
 		} else if (value instanceof Integer) {
-			info(opcode, "v%d=0x%08x  // int:%d   float:%f", reg,value, value, Float.intBitsToFloat((Integer) value));
+			info(opcode, "v%d=0x%08x  // int:%d   float:%f", reg, value, value, Float.intBitsToFloat((Integer) value));
 		} else if (value instanceof Long) {
 			info(opcode, "v%d=0x%016x  // long:%d   double:%f", reg, value, value, Double.longBitsToDouble((Long) value));
 		} else {

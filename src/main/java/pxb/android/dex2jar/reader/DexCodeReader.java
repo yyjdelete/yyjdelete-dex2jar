@@ -15,8 +15,12 @@
  */
 package pxb.android.dex2jar.reader;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
@@ -71,6 +75,22 @@ public class DexCodeReader implements DexOpcodes {
 		this.method = method;
 	}
 
+	private static class TryCatchNode {
+		Label start;
+		Label end;
+		Label handler;
+		String type;
+
+		public TryCatchNode(Label start, Label end, Label handler, String type) {
+			super();
+			this.start = start;
+			this.end = end;
+			this.handler = handler;
+			this.type = type;
+		}
+
+	}
+
 	/**
 	 * 处理指令
 	 * 
@@ -78,7 +98,7 @@ public class DexCodeReader implements DexOpcodes {
 	 */
 	public void accept(DexCodeVisitor dcv) {
 		DataIn in = this.in;
-		DexOpcodeAdapter tadoa = new DexOpcodeAdapter(dex, dcv, this.labels);
+		DexOpcodeAdapter tadoa = new DexOpcodeAdapter(dex, dcv);
 		int total_registers_size = in.readShortx();
 		int in_register_size = in.readShortx();
 		// int outs_size =
@@ -109,6 +129,8 @@ public class DexCodeReader implements DexOpcodes {
 			dcv.visitTotalRegSize(total_registers_size);
 		}
 
+		Set<Integer> tryEndOffsets = new HashSet<Integer>();
+		List<TryCatchNode> tcs = new ArrayList<TryCatchNode>();
 		// 处理异常处理
 		if (tries_size > 0) {
 			in.push();
@@ -133,17 +155,18 @@ public class DexCodeReader implements DexOpcodes {
 					int handler = (int) in.readUnsignedLeb128();
 					order(start);
 					order(start + offset);
+					tryEndOffsets.add(start + offset);
 					order(handler);
 					String type = dex.getType(type_id);
-					dcv.visitTryCatch(this.labels.get(start), this.labels.get(start + offset), this.labels.get(handler), type);
+					tcs.add(new TryCatchNode(this.labels.get(start), this.labels.get(start + offset), this.labels.get(handler), type));
 				}
 				if (catchAll) {
 					int handler = (int) in.readUnsignedLeb128();
 					order(start);
 					order(start + offset);
+					tryEndOffsets.add(start + offset);
 					order(handler);
-					dcv.visitTryCatch(this.labels.get(start), this.labels.get(start + offset), this.labels.get(handler), null);
-
+					tcs.add(new TryCatchNode(this.labels.get(start), this.labels.get(start + offset), this.labels.get(handler), null));
 				}
 				in.pop();
 			}
@@ -166,6 +189,23 @@ public class DexCodeReader implements DexOpcodes {
 				switch (opcode) {
 				case OP_GOTO:
 					order(i + ((byte) a));
+					break;
+				case OP_MOVE_RESULT_OBJECT:
+				case OP_MOVE_RESULT:
+				case OP_MOVE_RESULT_WIDE:
+					if (tryEndOffsets.contains(i)) {
+						Label thisLabel = labels.remove(i);
+						Label label = labels.get(i + 1);
+						if (label != null) {
+							for (TryCatchNode tc : tcs) {
+								if (tc.end.equals(thisLabel)) {
+									tc.end = label;
+								}
+							}
+						} else {
+							labels.put(i + 1, thisLabel);
+						}
+					}
 					break;
 				}
 				i += 1;
@@ -252,12 +292,18 @@ public class DexCodeReader implements DexOpcodes {
 		}
 		in.pop();
 
+		for (TryCatchNode tc : tcs) {
+			dcv.visitTryCatch(tc.start, tc.end, tc.handler, tc.type);
+		}
+		tcs = null;
+		tryEndOffsets = null;
+
 		// 处理指令
 		for (int i = 0; i < instruction_size;) {
 			int opcode = in.readByte() & 0xff;
 			if (labels.containsKey(i))
 				dcv.visitLabel(labels.get(i));
-			tadoa.visitOffset(i);
+
 			int size = DexOpcodeUtil.getSize(opcode);
 			switch (size) {
 			case 1: {
@@ -265,7 +311,11 @@ public class DexCodeReader implements DexOpcodes {
 				if (log.isDebugEnabled()) {
 					log.debug(String.format("%04x| %02x%02x           %s", i, opcode, a, DexOpcodeDump.dump(opcode)));
 				}
-				tadoa.visit(opcode, a);
+				if (opcode == OP_GOTO) {
+					tadoa.visit(opcode, a, labels.get(i + ((byte) a)));
+				} else {
+					tadoa.visit(opcode, a, null);
+				}
 				i += 1;
 				break;
 			}
@@ -275,7 +325,27 @@ public class DexCodeReader implements DexOpcodes {
 				if (log.isDebugEnabled()) {
 					log.debug(String.format("%04x| %02x%02x %04x      %s", i, opcode, a, Short.reverseBytes(b), DexOpcodeDump.dump(opcode)));
 				}
-				tadoa.visit(opcode, a, b);
+
+				switch (opcode) {
+				case OP_GOTO_16:
+				case OP_IF_EQZ:
+				case OP_IF_NEZ:
+				case OP_IF_LTZ:
+				case OP_IF_GEZ:
+				case OP_IF_GTZ:
+				case OP_IF_LEZ:
+				case OP_IF_EQ:
+				case OP_IF_NE:
+				case OP_IF_LT:
+				case OP_IF_GE:
+				case OP_IF_GT:
+				case OP_IF_LE:
+					tadoa.visit(opcode, a, b, labels.get(i + b));
+					break;
+				default:
+					tadoa.visit(opcode, a, b, null);
+				}
+
 				i += 2;
 				break;
 			}
