@@ -33,8 +33,7 @@ import pxb.android.dex2jar.optimize.LdcOptimizeAdapter;
 import pxb.android.dex2jar.optimize.MethodTransformer;
 import pxb.android.dex2jar.org.objectweb.asm.tree.MethodNode;
 import pxb.android.dex2jar.v3.Ann.Item;
-import pxb.android.dex2jar.visitors.DexAnnotationAble;
-import pxb.android.dex2jar.visitors.DexAnnotationVisitor;
+import pxb.android.dex2jar.visitors.AnnotationAble;
 import pxb.android.dex2jar.visitors.DexCodeVisitor;
 import pxb.android.dex2jar.visitors.DexMethodVisitor;
 
@@ -112,7 +111,7 @@ public class V3MethodAdapter implements DexMethodVisitor, Opcodes {
 	 * 
 	 * @see pxb.android.dex2jar.visitors.DexMethodVisitor#visitAnnotation(java.lang .String, int)
 	 */
-	public DexAnnotationVisitor visitAnnotation(String name, int visitable) {
+	public AnnotationVisitor visitAnnotation(String name, int visitable) {
 		Ann ann = new Ann(name, visitable);
 		anns.add(ann);
 		return new V3AnnAdapter(ann);
@@ -154,10 +153,10 @@ public class V3MethodAdapter implements DexMethodVisitor, Opcodes {
 	 * 
 	 * @see pxb.android.dex2jar.visitors.DexMethodVisitor#visitParamesterAnnotation (int)
 	 */
-	public DexAnnotationAble visitParamesterAnnotation(int index) {
+	public AnnotationAble visitParamesterAnnotation(int index) {
 		final List<Ann> panns = paramAnns[index];
-		return new DexAnnotationAble() {
-			public DexAnnotationVisitor visitAnnotation(String name, int visitable) {
+		return new AnnotationAble() {
+			public AnnotationVisitor visitAnnotation(String name, int visitable) {
 				Ann ann = new Ann(name, visitable);
 				panns.add(ann);
 				return new V3AnnAdapter(ann);
