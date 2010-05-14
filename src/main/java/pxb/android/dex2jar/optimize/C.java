@@ -39,7 +39,7 @@ public class C implements MethodTransformer, Opcodes {
 		Analyzer a = new Analyzer(dx);
 		try {
 			a.analyze(Type.getType(m.getOwner()).getInternalName(), method);
-		} catch (AnalyzerException e) {
+		} catch (Exception e) {
 			throw new RuntimeException("fail on " + m, e);
 		}
 		final Frame[] fs = a.getFrames();
