@@ -24,13 +24,12 @@ import org.slf4j.LoggerFactory;
 import pxb.android.dex2jar.Field;
 import pxb.android.dex2jar.Method;
 import pxb.android.dex2jar.v3.Ann.Item;
-import pxb.android.dex2jar.visitors.DexAnnotationVisitor;
 
 /**
  * @author Panxiaobo [pxb1988@126.com]
  * @version $Id$
  */
-public class V3AnnAdapter implements DexAnnotationVisitor {
+public class V3AnnAdapter implements AnnotationVisitor {
 
 	Ann ann;
 	private static final Logger logger = LoggerFactory.getLogger(V3AnnAdapter.class);
@@ -87,7 +86,7 @@ public class V3AnnAdapter implements DexAnnotationVisitor {
 	 * @see pxb.android.dex2jar.visitors.DexAnnotationVisitor#visitAnnotation(java
 	 * .lang.String, java.lang.String)
 	 */
-	public DexAnnotationVisitor visitAnnotation(String name, String desc) {
+	public AnnotationVisitor visitAnnotation(String name, String desc) {
 		Ann ann = new Ann(desc, -1);
 		this.ann.items.add(new Item(name, ann));
 		return new V3AnnAdapter(ann);
@@ -99,7 +98,7 @@ public class V3AnnAdapter implements DexAnnotationVisitor {
 	 * @see pxb.android.dex2jar.visitors.DexAnnotationVisitor#visitArray(java.lang
 	 * .String)
 	 */
-	public DexAnnotationVisitor visitArray(String name) {
+	public AnnotationVisitor visitArray(String name) {
 		Ann ann = new Ann(null, -1);
 		this.ann.items.add(new Item(name, ann));
 		return new V3AnnAdapter(ann);

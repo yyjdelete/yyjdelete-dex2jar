@@ -23,7 +23,6 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 
 import pxb.android.dex2jar.Field;
-import pxb.android.dex2jar.visitors.DexAnnotationVisitor;
 import pxb.android.dex2jar.visitors.DexFieldVisitor;
 
 /**
@@ -59,7 +58,7 @@ public class V3FieldAdapter implements DexFieldVisitor {
 	 * @see pxb.android.dex2jar.visitors.DexFieldVisitor#visitAnnotation(java.lang
 	 * .String, int)
 	 */
-	public DexAnnotationVisitor visitAnnotation(String name, int visitable) {
+	public AnnotationVisitor visitAnnotation(String name, int visitable) {
 		Ann ann = new Ann(name, visitable);
 		anns.add(ann);
 		return new V3AnnAdapter(ann);

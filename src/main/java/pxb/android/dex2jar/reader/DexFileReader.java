@@ -33,7 +33,7 @@ import pxb.android.dex2jar.Dex;
 import pxb.android.dex2jar.Field;
 import pxb.android.dex2jar.Method;
 import pxb.android.dex2jar.Proto;
-import pxb.android.dex2jar.visitors.DexAnnotationAble;
+import pxb.android.dex2jar.visitors.AnnotationAble;
 import pxb.android.dex2jar.visitors.DexClassVisitor;
 import pxb.android.dex2jar.visitors.DexCodeVisitor;
 import pxb.android.dex2jar.visitors.DexFieldVisitor;
@@ -461,7 +461,7 @@ public class DexFileReader implements Dex {
 					for (int j = 0; j < sizeJ; j++) {
 						int field_annotation_offset = in.readIntx();
 						in.pushMove(field_annotation_offset);
-						DexAnnotationAble dpav = dmv.visitParamesterAnnotation(j);
+						AnnotationAble dpav = dmv.visitParamesterAnnotation(j);
 						if (dpav != null)
 							new DexAnnotationReader(this).accept(in, dpav);
 						in.pop();

@@ -19,18 +19,9 @@ package pxb.android.dex2jar.visitors;
  * @author Panxiaobo [pxb1988@126.com]
  * @version $Id$
  */
-public interface DexMethodVisitor extends DexAnnotationAble {
+public interface DexMethodVisitor extends AnnotationAble {
 
-	public DexAnnotationAble visitParamesterAnnotation(int index);
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * pxb.android.dex2jar.visitors.DexAnnotationAble#visitAnnotation(java.lang
-	 * .String, boolean)
-	 */
-	public DexAnnotationVisitor visitAnnotation(String name, int visiable);
+	public AnnotationAble visitParamesterAnnotation(int index);
 
 	/**
 	 * 

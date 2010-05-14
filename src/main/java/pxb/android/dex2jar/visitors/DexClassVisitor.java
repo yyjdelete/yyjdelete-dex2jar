@@ -22,15 +22,13 @@ import pxb.android.dex2jar.Method;
  * @author Panxiaobo [pxb1988@126.com]
  * @version $Id$
  */
-public interface DexClassVisitor extends DexAnnotationAble {
+public interface DexClassVisitor extends AnnotationAble {
 
 	public void visitSource(String file);
 
 	public DexFieldVisitor visitField(Field field, Object value);
 
 	public DexMethodVisitor visitMethod(Method method);
-
-	public DexAnnotationVisitor visitAnnotation(String name, int visitable);
 
 	public void visitEnd();
 }
