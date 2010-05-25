@@ -88,7 +88,7 @@ public interface DexCodeVisitor {
 	 * 		case OP_IPUT_BYTE:
 	 * 		case OP_IPUT_CHAR:
 	 * 		case OP_IPUT_SHORT:
-
+	 * 
 	 * 		case OP_SPUT:
 	 * 		case OP_SPUT_WIDE:
 	 * 		case OP_SPUT_OBJECT:
@@ -349,8 +349,9 @@ public interface DexCodeVisitor {
 	 * @param opcode
 	 * @param method
 	 * @param regs
+	 * @param saveTo
 	 */
-	void visitMethodInsn(int opcode, Method method, int[] args);
+	void visitMethodInsn(int opcode, Method method, int[] args, int saveTo);
 
 	/**
 	 * 
@@ -399,9 +400,9 @@ public interface DexCodeVisitor {
 
 	/**
 	 * <pre>
-	 * 		case OP_MOVE_RESULT_OBJECT:
-	 * 		case OP_MOVE_RESULT:
-	 * 		case OP_MOVE_RESULT_WIDE:
+	 * 		//case OP_MOVE_RESULT_OBJECT:
+	 * 		//case OP_MOVE_RESULT:
+	 * 		//case OP_MOVE_RESULT_WIDE:
 	 * 		case OP_MOVE_EXCEPTION:
 	 * 		case OP_THROW:
 	 * 		case OP_RETURN_OBJECT:

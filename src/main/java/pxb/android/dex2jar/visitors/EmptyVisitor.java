@@ -181,7 +181,7 @@ public class EmptyVisitor implements DexFileVisitor, DexClassVisitor, DexMethodV
 	 * 
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitMethodInsn(int, pxb.android.dex2jar.Method, int[])
 	 */
-	public void visitMethodInsn(int opcode, Method method, int[] args) {
+	public void visitMethodInsn(int opcode, Method method, int[] args, int saveTo) {
 
 	}
 

@@ -357,8 +357,27 @@ public class DexCodeReader implements DexOpcodes {
 					log.debug(String.format("%04x| %02x%02x %04x %04x %s", i, opcode, a, Short.reverseBytes(b), Short.reverseBytes(c), DexOpcodeDump
 							.dump(opcode)));
 				}
-				tadoa.visit(opcode, a, b, c);
-				i += 3;
+				
+				//当前指令为方法调用
+				//并且下一条指令为MOVE_RESULT*合并两条指令
+				
+				int methodSaveTo = -1;
+				int skip = 0;
+				int ipp = 3;
+				in.push();
+				switch (in.readByte() & 0xff) {
+				case OP_MOVE_RESULT_OBJECT:
+				case OP_MOVE_RESULT:
+				case OP_MOVE_RESULT_WIDE:
+					methodSaveTo = in.readByte();
+					skip += 2;
+					ipp += 1;
+				}
+				in.pop();
+				in.skip(skip);
+
+				tadoa.visit(opcode, a, b, c, methodSaveTo);
+				i += ipp;
 				break;
 			}
 			case 0:// OP_NOP
