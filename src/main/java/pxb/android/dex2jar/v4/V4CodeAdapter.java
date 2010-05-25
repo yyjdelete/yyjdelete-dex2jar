@@ -553,9 +553,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	 * 
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitMethodInsn(int, pxb.android.dex2jar.Method, int[])
 	 */
-	public void visitMethodInsn(int opcode, Method method, int[] args) {
-		Type ret = Type.getType(method.getType().getReturnType());
-
+	public void visitMethodInsn(int opcode, Method method, int[] args, int saveTo) {
 		Value[] argValues = new Value[args.length];
 
 		for (int i = 0; i < args.length; i++) {
@@ -571,12 +569,7 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 			}
 
 		} else {
-			if (!Type.VOID_TYPE.equals(ret)) {
-				stack_value = newReg();
-				insnList.add(stack_value, mfn);
-			} else {
-				insnList.add(mfn);
-			}
+			insnList.add(saveTo, mfn);
 		}
 	}
 

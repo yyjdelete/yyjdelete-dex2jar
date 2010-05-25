@@ -162,8 +162,8 @@ public class DexCodeAdapter implements DexCodeVisitor {
 	 * 
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitMethodInsn(int, pxb.android.dex2jar.Method, int[])
 	 */
-	public void visitMethodInsn(int opcode, Method method, int[] regs) {
-		dcv.visitMethodInsn(opcode, method, regs);
+	public void visitMethodInsn(int opcode, Method method, int[] regs, int saveTo) {
+		dcv.visitMethodInsn(opcode, method, regs, saveTo);
 	}
 
 	public void visitTableSwitchInsn(int opcode, int reg, int firstCase, int lastCase, Label defaultLabel, Label[] labels) {
@@ -201,7 +201,9 @@ public class DexCodeAdapter implements DexCodeVisitor {
 		dcv.visitVarInsn(opcode, reg);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitTotalRegSize(int)
 	 */
 	public void visitTotalRegSize(int totalRegistersSize) {

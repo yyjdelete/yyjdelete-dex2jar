@@ -608,7 +608,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 	 * @see pxb.android.dex2jar.visitors.DexCodeAdapter#visitMethodInsn(int, pxb.android.dex2jar.Method, int[])
 	 */
 	@Override
-	public void visitMethodInsn(int opcode, Method method, int[] regs) {
+	public void visitMethodInsn(int opcode, Method method, int[] regs, int saveTo) {
 
 		switch (opcode) {
 		case OP_INVOKE_STATIC: {
@@ -623,7 +623,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 			if (method.getType().getReturnType().equals("V")) {
 				info(opcode, "%s.%s(%s)  //%s", c(method.getOwner()), method.getName(), sb.toString(), method.toString());
 			} else {
-				info(opcode, "TEMP=%s.%s(%s)  //%s", c(method.getOwner()), method.getName(), sb.toString(), method.toString());
+				info(opcode, "v%d=%s.%s(%s)  //%s", saveTo, c(method.getOwner()), method.getName(), sb.toString(), method.toString());
 
 			}
 		}
@@ -643,13 +643,13 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 			if (method.getType().getReturnType().equals("V")) {
 				info(opcode, "v%d.%s(%s)  //%s", regs[0], method.getName(), sb.toString(), method.toString());
 			} else {
-				info(opcode, "TEMP=v%d.%s(%s)  //%s", regs[0], method.getName(), sb.toString(), method.toString());
+				info(opcode, "v%d=v%d.%s(%s)  //%s", saveTo, regs[0], method.getName(), sb.toString(), method.toString());
 
 			}
 		}
 			break;
 		}
-		super.visitMethodInsn(opcode, method, regs);
+		super.visitMethodInsn(opcode, method, regs, saveTo);
 	}
 
 	/*

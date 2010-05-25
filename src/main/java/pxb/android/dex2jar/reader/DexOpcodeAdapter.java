@@ -130,9 +130,9 @@ public class DexOpcodeAdapter implements DexOpcodes, DexInternalOpcode {
 			dcv.visitInsn(opcode);
 		}
 			break;
-		case OP_MOVE_RESULT_OBJECT:// move-result-object
-		case OP_MOVE_RESULT:
-		case OP_MOVE_RESULT_WIDE:
+		// case OP_MOVE_RESULT_OBJECT:// move-result-object
+		// case OP_MOVE_RESULT:
+		// case OP_MOVE_RESULT_WIDE:
 		case OP_MOVE_EXCEPTION:
 		case OP_THROW:// throw
 		case OP_RETURN_OBJECT:// return-object
@@ -379,12 +379,7 @@ public class DexOpcodeAdapter implements DexOpcodes, DexInternalOpcode {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see pxb.android.dex2jar.visitors.DexOpcodeVisitor#visit(int, int, int, int)
-	 */
-	public void visit(int opcode, int arg1, int arg2, int arg3) {
+	public void visit(int opcode, int arg1, int arg2, int arg3, int invokeMethodSaveToReg) {
 		switch (opcode) {
 		case OP_INVOKE_VIRTUAL:
 		case OP_INVOKE_SUPER:
@@ -394,7 +389,7 @@ public class DexOpcodeAdapter implements DexOpcodes, DexInternalOpcode {
 			Method m = dex.getMethod(arg2);
 			int args[] = getValues(arg1, arg3);
 			args = filter(m, args);
-			dcv.visitMethodInsn(opcode, m, args);
+			dcv.visitMethodInsn(opcode, m, args, invokeMethodSaveToReg);
 		}
 			break;
 		case OP_INVOKE_VIRTUAL_RANGE:
@@ -409,7 +404,7 @@ public class DexOpcodeAdapter implements DexOpcodes, DexInternalOpcode {
 			Method m = dex.getMethod(arg2);
 			args = filter(m, args);
 			// 转换成非Range的指令
-			dcv.visitMethodInsn(opcode - 6, m, args);
+			dcv.visitMethodInsn(opcode - 6, m, args, invokeMethodSaveToReg);
 		}
 			break;
 		case OP_CONST: {

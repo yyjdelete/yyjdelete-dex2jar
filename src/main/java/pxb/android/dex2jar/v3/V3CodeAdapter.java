@@ -681,8 +681,7 @@ public class V3CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 				// 针对 a=a+1
 				mv.visitIincInsn(map(opReg), opValueOrReg);
 				stack(0);
-			}
-			else {
+			} else {
 				mv.visitVarInsn(ILOAD, map(opReg));
 				mv.visitLdcInsn(opValueOrReg);
 				mv.visitInsn(DexOpcodeUtil.mapOpcode(opcode));
@@ -1012,14 +1011,9 @@ public class V3CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	 * 
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitMethodInsn(int, pxb.android.dex2jar.Method, int[])
 	 */
-	public void visitMethodInsn(int opcode, Method method, int[] args) {
+	public void visitMethodInsn(int opcode, Method method, int[] args, int saveTo) {
 		checkResult();
 		Type ret = Type.getType(method.getType().getReturnType());
-		if (!Type.VOID_TYPE.equals(ret)) {
-			typeInStack = ret;
-		} else {
-			typeInStack = null;
-		}
 
 		switch (opcode) {
 		case OP_INVOKE_STATIC: {
@@ -1050,6 +1044,10 @@ public class V3CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 				throw new RuntimeException(String.format("Not support Opcode:[0x%04x]=%s yet!", opcode, DexOpcodeDump.dump(opcode)));
 			}
 		}
+		if (saveTo > 0) {
+			mv.visitVarInsn(ret.getOpcode(ISTORE), saveTo);
+		}
+
 	}
 
 	/*
@@ -1222,11 +1220,13 @@ public class V3CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitTotalRegSize(int)
 	 */
 	public void visitTotalRegSize(int totalRegistersSize) {
-		//ignore
+		// ignore
 	}
 
 }
