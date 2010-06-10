@@ -60,6 +60,8 @@ public class StaticValue implements Value {
 
 	public String toString() {
 		if (value instanceof String) {
+			String value = (String) this.value;
+			value = value.replaceAll("\n", "\\n").replaceAll("\r", "\\r").replaceAll("\t", "\\t");
 			return "\"" + value + "\"";
 		} else
 			return "" + value;

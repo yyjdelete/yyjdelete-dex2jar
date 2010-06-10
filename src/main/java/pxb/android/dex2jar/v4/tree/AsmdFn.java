@@ -49,9 +49,16 @@ public class AsmdFn extends Fn {
 	}
 
 	static int[] map = new int[] { Opcodes.IADD, Opcodes.ISUB, Opcodes.IMUL, Opcodes.IDIV, Opcodes.IREM, Opcodes.IAND, Opcodes.IOR, Opcodes.IXOR, Opcodes.ISHL,
-			Opcodes.ISHR, Opcodes.IUSHR, };
+			Opcodes.ISHR, Opcodes.IUSHR };
+
+	static String[] mapString = new String[] { "+", "-", "*", "/", "REM", "&", "|", "^", ">", "<", ">>" };
+
 	Value a;
 	Value b;
+
+	public String toString() {
+		return a + mapString[asmd] + b;
+	}
 
 	/**
 	 * @param type
