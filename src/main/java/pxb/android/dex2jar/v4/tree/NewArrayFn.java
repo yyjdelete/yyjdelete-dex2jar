@@ -90,11 +90,43 @@ public class NewArrayFn extends Fn {
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see pxb.android.dex2jar.v4.tree.Fn#inValues()
 	 */
 	@Override
 	public Value[] inValues() {
 		return asList(demValue);
 	}
+
+	public String toString() {
+		int shortType = arrayType.getElementType().getSort();
+		String type = null;
+		switch (shortType) {
+		case Type.BOOLEAN:
+			type = "boolean";
+			break;
+		case Type.BYTE:
+			type = "byte";
+			break;
+		case Type.CHAR:
+			type = "char";
+			break;
+		case Type.DOUBLE:
+			type = "double";
+			break;
+		case Type.FLOAT:
+			type = "float";
+			break;
+		case Type.INT:
+			type = "int";
+			break;
+		case Type.OBJECT:
+			type = arrayType.getClassName();
+			break;
+		}
+		return "new " + type + "[" + demValue + "]";
+	}
+
 }

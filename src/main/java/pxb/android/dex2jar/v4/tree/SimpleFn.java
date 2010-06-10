@@ -49,11 +49,27 @@ public class SimpleFn extends Fn implements DexOpcodes, Opcodes {
 		value.accept(Type.getType(Object.class), mv);
 		switch (opcode) {
 		case OP_MONITOR_ENTER:
+			mv.visitInsn(MONITORENTER);
+			break;
 		case OP_MONITOR_EXIT:
+			mv.visitInsn(MONITOREXIT);
+			break;
 		}
 	}
 
-	/* (non-Javadoc)
+	public String toString() {
+		switch (opcode) {
+		case OP_MONITOR_ENTER:
+			return "lock (" + value + ")";
+		case OP_MONITOR_EXIT:
+			return "unlock (" + value + ")";
+		}
+		return "";
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see pxb.android.dex2jar.v4.tree.Fn#inValues()
 	 */
 	@Override

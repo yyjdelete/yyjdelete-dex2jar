@@ -17,7 +17,9 @@ package pxb.android.dex2jar.dump;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
@@ -68,18 +70,51 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 		}
 	}
 
+	Map<Integer, String> _m = new HashMap<Integer, String>();
+
+	public String v(int reg) {
+		String s = _m.get(reg);
+		if (s == null) {
+			s = "local_" + reg;
+			_m.put(reg, s);
+		}
+		return s;
+	}
+
+	int thisReg = -1;
+	String thisTypeName;
+
 	@Override
 	public void visitInitLocal(int... args) {
 		int i = 0;
 		if ((m.getAccessFlags() & Opcodes.ACC_STATIC) == 0) {
 			int reg = args[i++];
-			String type = Type.getType(m.getOwner()).getClassName();
-			out.printf("%20s:v%d   //%s\n", "this", reg, type);
+			this.thisReg = reg;
+			this.thisTypeName = m.getOwner();
+			// String type = Type.getType(thisTypeName).getClassName();
+			// out.printf("%20s:%s   //%s\n", "this", reg, type);
+			_m.put(reg, "this");
 		}
 		for (String type : m.getType().getParameterTypes()) {
 			int reg = args[i++];
 			type = Type.getType(type).getClassName();
-			out.printf("%20s:v%d   //%s\n", "", reg, type);
+			// out.printf("%20s:%s   //%s\n", "", reg, type);
+			int ext = type.lastIndexOf('.');
+			if (ext > 0) {
+				type = type.substring(ext + 1);
+			}
+			if (Character.isLowerCase(type.charAt(0))) {
+				char c = Character.toUpperCase(type.charAt(0));
+				if (type.length() > 1) {
+					type = c + type.substring(1);
+				} else {
+					type = c + "";
+				}
+			}
+			if (type.endsWith("[]")) {
+				type = "ArrayOf" + type.substring(0, type.length() - 2);
+			}
+			_m.put(reg, "param" + type + "_" + reg);
 		}
 		super.visitInitLocal(args);
 	}
@@ -103,7 +138,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 		case OP_APUT_OBJECT:
 		case OP_APUT_SHORT:
 		case OP_APUT_WIDE:
-			info(opcode, "v%d[v%d]=v%d", array, index, value);
+			info(opcode, "%s[%s]=%s", v(array), v(index), v(value));
 			break;
 		case OP_AGET:
 		case OP_AGET_BOOLEAN:
@@ -112,7 +147,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 		case OP_AGET_OBJECT:
 		case OP_AGET_SHORT:
 		case OP_AGET_WIDE:
-			info(opcode, "v%d=v%d[v%d]", value, array, index);
+			info(opcode, "%s=%s[%s]", v(value), v(array), v(index));
 			break;
 		}
 		super.visitArrayInsn(opcode, value, array, index);
@@ -126,7 +161,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 	@Override
 	public void visitArrayInsn(int opcode, String type, int saveToReg, int demReg) {
 		String type_show = Type.getType(type).getElementType().getClassName();
-		info(opcode, "v%d=new %s[v%d]", saveToReg, type_show, demReg);
+		info(opcode, "%s=new %s[%s]", v(saveToReg), type_show, v(demReg));
 		super.visitArrayInsn(opcode, type, saveToReg, demReg);
 	}
 
@@ -154,7 +189,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 		case OP_IGET_SHORT:
 		case OP_IGET:
 		case OP_IGET_WIDE:
-			info(opcode, "v%d=v%d.%s  //%s", regFromOrTo, owner_reg, field.getName(), field);
+			info(opcode, "%s=%s.%s  //%s", v(regFromOrTo), v(owner_reg), field.getName(), field);
 			break;
 		case OP_IPUT_OBJECT:
 		case OP_IPUT_BOOLEAN:
@@ -162,7 +197,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 		case OP_IPUT_SHORT:
 		case OP_IPUT:
 		case OP_IPUT_WIDE:
-			info(opcode, "v%d.%s=v%d  //%s", owner_reg, field.getName(), regFromOrTo, field);
+			info(opcode, "%s.%s=%s  //%s", v(owner_reg), field.getName(), v(regFromOrTo), field);
 			break;
 		case OP_SPUT_OBJECT:
 		case OP_SPUT_BOOLEAN:
@@ -171,7 +206,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 		case OP_SPUT_SHORT:
 		case OP_SPUT_WIDE:
 		case OP_SPUT:
-			info(opcode, "%s.%s=v%d  //%s", c(field.getOwner()), field.getName(), regFromOrTo, field);
+			info(opcode, "%s.%s=%s  //%s", c(field.getOwner()), field.getName(), v(regFromOrTo), field);
 			break;
 		case OP_SGET_OBJECT:
 		case OP_SGET_BOOLEAN:
@@ -180,7 +215,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 		case OP_SGET_SHORT:
 		case OP_SGET_WIDE:
 		case OP_SGET:
-			info(opcode, "v%d=%s.%s  //%s", regFromOrTo, c(field.getOwner()), field.getName(), field);
+			info(opcode, "%s=%s.%s  //%s", v(regFromOrTo), c(field.getOwner()), field.getName(), field);
 			break;
 		}
 
@@ -197,11 +232,11 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 
 		int j = 0;
 		if (j < initLength) {
-			info(opcode, "v%d[%d]=%d", reg, j, values[j]);
+			info(opcode, "%s[%s]=%d", v(reg), v(j), values[j]);
 			j++;
 		}
 		for (; j < initLength; j++) {
-			info(-1, "v%d[%d]=%d", reg, j, values[j]);
+			info(-1, "%s[%s]=%d", v(reg), v(j), values[j]);
 		}
 		super.visitFillArrayInsn(opcode, reg, elemWidth, initLength, values);
 	}
@@ -216,49 +251,49 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 		switch (opcode) {
 		case OP_AND_INT_2ADDR:
 		case OP_AND_LONG_2ADDR:
-			info(opcode, "v%d &= v%d", saveToReg, opReg);
+			info(opcode, "%s &= %s", v(saveToReg), v(opReg));
 			break;
 		case OP_OR_INT_2ADDR:
 		case OP_OR_LONG_2ADDR:
-			info(opcode, "v%d |= v%d", saveToReg, opReg);
+			info(opcode, "%s |= %s", v(saveToReg), v(opReg));
 			break;
 		case OP_XOR_INT_2ADDR:
 		case OP_XOR_LONG_2ADDR:
-			info(opcode, "v%d ^= v%d", saveToReg, opReg);
+			info(opcode, "%s ^= %s", v(saveToReg), v(opReg));
 			break;
 		case OP_MUL_LONG_2ADDR:
 		case OP_MUL_INT_2ADDR:
 		case OP_MUL_FLOAT_2ADDR:
 		case OP_MUL_DOUBLE_2ADDR:
-			info(opcode, "v%d *= v%d", saveToReg, opReg);
+			info(opcode, "%s *= %s", v(saveToReg), v(opReg));
 			break;
 		case OP_SUB_INT_2ADDR:
 		case OP_SUB_LONG_2ADDR:
 		case OP_SUB_FLOAT_2ADDR:
 		case OP_SUB_DOUBLE_2ADDR:
-			info(opcode, "v%d -= v%d", saveToReg, opReg);
+			info(opcode, "%s -= %s", v(saveToReg), v(opReg));
 			break;
 		case OP_REM_INT_2ADDR:
 		case OP_REM_LONG_2ADDR:
-			info(opcode, "v%d %%= v%d", saveToReg, opReg);
+			info(opcode, "%s %%= %s", v(saveToReg), v(opReg));
 			break;
 		case OP_DIV_INT_2ADDR:
 		case OP_DIV_LONG_2ADDR:
 		case OP_DIV_FLOAT_2ADDR:
 		case OP_DIV_DOUBLE_2ADDR:
-			info(opcode, "v%d /= v%d", saveToReg, opReg);
+			info(opcode, "%s /= %s", v(saveToReg), v(opReg));
 			break;
 		case OP_ADD_INT_2ADDR:
 		case OP_ADD_LONG_2ADDR:
 		case OP_ADD_FLOAT_2ADDR:
 		case OP_ADD_DOUBLE_2ADDR:
-			info(opcode, "v%d += v%d", saveToReg, opReg);
+			info(opcode, "%s += %s", v(saveToReg), v(opReg));
 			break;
 		case OP_NEG_INT:
 		case OP_NEG_DOUBLE:
 		case OP_NEG_FLOAT:
 		case OP_NEG_LONG:
-			info(opcode, "v%d = ~v%d", saveToReg, opReg);
+			info(opcode, "%s = ~%s", v(saveToReg), v(opReg));
 			break;
 		case OP_MOVE_OBJECT:
 		case OP_MOVE:
@@ -266,50 +301,50 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 		case OP_MOVE_OBJECT_FROM16:
 		case OP_MOVE_FROM16:
 		case OP_MOVE_WIDE_FROM16:
-			info(opcode, "v%d = v%d", saveToReg, opReg);
+			info(opcode, "%s = %s", v(saveToReg), v(opReg));
 			break;
 		case OP_INT_TO_BYTE:
-			info(opcode, "v%d = (byte)v%d", saveToReg, opReg);
+			info(opcode, "%s = (byte)%s", v(saveToReg), v(opReg));
 			break;
 		case OP_INT_TO_CHAR:
-			info(opcode, "v%d = (char)v%d", saveToReg, opReg);
+			info(opcode, "%s = (char)%s", v(saveToReg), v(opReg));
 			break;
 		case OP_INT_TO_DOUBLE:
 		case OP_INT_TO_FLOAT:
 		case OP_INT_TO_LONG:
-			info(opcode, "v%d = v%d", saveToReg, opReg);
+			info(opcode, "%s = %s", v(saveToReg), v(opReg));
 			break;
 		case OP_INT_TO_SHORT:
-			info(opcode, "v%d = (short)v%d", saveToReg, opReg);
+			info(opcode, "%s = (short)%s", v(saveToReg), v(opReg));
 			break;
 		case OP_LONG_TO_DOUBLE:
 		case OP_LONG_TO_FLOAT:
-			info(opcode, "v%d = v%d", saveToReg, opReg);
+			info(opcode, "%s = %s", v(saveToReg), v(opReg));
 			break;
 		case OP_LONG_TO_INT:
-			info(opcode, "v%d = (int)v%d", saveToReg, opReg);
+			info(opcode, "%s = (int)%s", v(saveToReg), v(opReg));
 			break;
 		case OP_DOUBLE_TO_FLOAT:
-			info(opcode, "v%d = (float)v%d", saveToReg, opReg);
+			info(opcode, "%s = (float)%s", v(saveToReg), v(opReg));
 			break;
 		case OP_DOUBLE_TO_INT:
-			info(opcode, "v%d = (int)v%d", saveToReg, opReg);
+			info(opcode, "%s = (int)%s", v(saveToReg), v(opReg));
 			break;
 		case OP_DOUBLE_TO_LONG:
-			info(opcode, "v%d = (long)v%d", saveToReg, opReg);
+			info(opcode, "%s = (long)%s", v(saveToReg), v(opReg));
 			break;
 		case OP_FLOAT_TO_INT:
-			info(opcode, "v%d = (int)v%d", saveToReg, opReg);
+			info(opcode, "%s = (int)%s", v(saveToReg), v(opReg));
 			break;
 		case OP_FLOAT_TO_DOUBLE:
-			info(opcode, "v%d = v%d", saveToReg, opReg);
+			info(opcode, "%s = %s", v(saveToReg), v(opReg));
 			break;
 		case OP_FLOAT_TO_LONG:
-			info(opcode, "v%d = (long)v%d", saveToReg, opReg);
+			info(opcode, "%s = (long)%s", v(saveToReg), v(opReg));
 			break;
 
 		case OP_ARRAY_LENGTH:
-			info(opcode, "v%d = v%d.length", saveToReg, opReg);
+			info(opcode, "%s = %s.length", v(saveToReg), v(opReg));
 			break;
 		}
 		super.visitInInsn(opcode, saveToReg, opReg);
@@ -325,107 +360,108 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 		switch (opcode) {
 		case OP_AND_INT:
 		case OP_AND_LONG:
-			info(opcode, "v%d = v%d & v%d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s & %s", v(saveToReg), v(opReg), v(opValueOrReg));
 			break;
 		case OP_OR_INT:
 		case OP_OR_LONG:
-			info(opcode, "v%d = v%d | v%d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s | %s", v(saveToReg), v(opReg), v(opValueOrReg));
 			break;
 		case OP_XOR_INT:
 		case OP_XOR_LONG:
-			info(opcode, "v%d = v%d ^ v%d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s ^ %s", v(saveToReg), v(opReg), v(opValueOrReg));
 			break;
 		case OP_CMP_LONG:
-			info(opcode, "v%d = v%d - v%d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s - %s", v(saveToReg), v(opReg), v(opValueOrReg));
 			break;
 		case OP_MUL_INT:
 		case OP_MUL_LONG:
 		case OP_MUL_FLOAT:
 		case OP_MUL_DOUBLE:
-			info(opcode, "v%d = v%d * v%d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s * %s", v(saveToReg), v(opReg), v(opValueOrReg));
 			break;
 		case OP_DIV_INT:
 		case OP_DIV_LONG:
 		case OP_DIV_FLOAT:
 		case OP_DIV_DOUBLE:
-			info(opcode, "v%d = v%d / v%d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s / %s", v(saveToReg), v(opReg), v(opValueOrReg));
 			break;
 		case OP_ADD_INT:
 		case OP_ADD_LONG:
 		case OP_ADD_FLOAT:
 		case OP_ADD_DOUBLE:
-			info(opcode, "v%d = v%d + v%d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s + %s", v(saveToReg), v(opReg), v(opValueOrReg));
 			break;
 		case OP_SUB_INT:
 		case OP_SUB_DOUBLE:
 		case OP_SUB_FLOAT:
 		case OP_SUB_LONG:
-			info(opcode, "v%d = v%d - v%d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s - %s", v(saveToReg), v(opReg), v(opValueOrReg));
 			break;
 		case OP_REM_LONG:
 		case OP_REM_INT:
 		case OP_REM_FLOAT:
 		case OP_REM_DOUBLE:
-			info(opcode, "v%d = v%d %% v%d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s %% %s", v(saveToReg), v(opReg), v(opValueOrReg));
 			break;
 		case OP_CMPL_DOUBLE:
 		case OP_CMPL_FLOAT:
-			info(opcode, "v%d = v%d - v%d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s - %s", v(saveToReg), v(opReg), v(opValueOrReg));
 			break;
 		case OP_CMPG_DOUBLE:
 		case OP_CMPG_FLOAT:
-			info(opcode, "v%d = v%d - v%d", saveToReg, opValueOrReg, opReg);
+			info(opcode, "%s = %s - %s", v(saveToReg), v(opValueOrReg), v(opReg));
 			break;
 		case OP_MUL_INT_LIT16:
-			info(opcode, "v%d = v%d * %d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s * %d", v(saveToReg), v(opReg), opValueOrReg);
 			break;
 		case OP_DIV_INT_LIT16:
-			info(opcode, "v%d = v%d / %d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s / %d", v(saveToReg), v(opReg), opValueOrReg);
 			break;
 		case OP_REM_INT_LIT16:
-			info(opcode, "v%d = v%d %% %d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s %% %d", v(saveToReg), v(opReg), opValueOrReg);
 			break;
 		case OP_ADD_INT_LIT16:
-			info(opcode, "v%d = v%d + %d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s + %d", v(saveToReg), v(opReg), opValueOrReg);
 			break;
 		case OP_AND_INT_LIT16:
-			info(opcode, "v%d = v%d & %d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s & %d", v(saveToReg), v(opReg), opValueOrReg);
 			break;
 		case OP_OR_INT_LIT16:
-			info(opcode, "v%d = v%d | %d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s | %d", v(saveToReg), v(opReg), opValueOrReg);
 			break;
 		case OP_XOR_INT_LIT16:
-			info(opcode, "v%d = v%d ^ %d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s ^ %d", v(saveToReg), v(opReg), opValueOrReg);
 			break;
 		case OP_AND_INT_LIT8:
-			info(opcode, "v%d = v%d & %d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s & %d", v(saveToReg), v(opReg), opValueOrReg);
 			break;
 		case OP_ADD_INT_LIT8:
-			info(opcode, "v%d = v%d + %d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s + %d", v(saveToReg), v(opReg), opValueOrReg);
 			break;
 		case OP_REM_INT_LIT8:
-			info(opcode, "v%d = v%d %% %d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s %% %d", v(saveToReg), v(opReg), opValueOrReg);
 			break;
 		case OP_DIV_INT_LIT8:
-			info(opcode, "v%d = v%d / %d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s / %d", v(saveToReg), v(opReg), opValueOrReg);
 			break;
 		case OP_MUL_INT_LIT8:
-			info(opcode, "v%d = v%d * %d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s * %d", v(saveToReg), v(opReg), opValueOrReg);
 			break;
 		case OP_SHR_INT_LIT8:
-			info(opcode, "v%d = v%d >> %d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s >> %d", v(saveToReg), v(opReg), opValueOrReg);
 			break;
 		case OP_SHL_INT_LIT8:
-			info(opcode, "v%d = v%d << %d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s << %d", v(saveToReg), v(opReg), opValueOrReg);
 			break;
 		case OP_USHR_INT_LIT8:
-			info(opcode, "v%d = v%d >>> %d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s >>> %d", v(saveToReg), v(opReg), opValueOrReg);
 			break;
 		case OP_OR_INT_LIT8:
-			info(opcode, "v%d = v%d | %d", saveToReg, opReg, opValueOrReg);
+			info(opcode, "%s = %s | %d", v(saveToReg), v(opReg), opValueOrReg);
 			break;
 		case OP_XOR_INT_LIT8:
-			info(opcode, "v%d = v%d ^ %d", saveToReg, opReg, opValueOrReg);
+
+			info(opcode, "%s = %s ^ %d", v(saveToReg), v(opReg), opValueOrReg);
 			break;
 		}
 		super.visitInInsn(opcode, saveToReg, opReg, opValueOrReg);
@@ -465,22 +501,22 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 	public void visitJumpInsn(int opcode, Label label, int reg) {
 		switch (opcode) {
 		case OP_IF_EQZ:
-			info(opcode, "if v%d == 0 goto L%s", reg, labels(label));
+			info(opcode, "if %s == 0 goto L%s", v(reg), labels(label));
 			break;
 		case OP_IF_NEZ:
-			info(opcode, "if v%d != 0 goto L%s", reg, labels(label));
+			info(opcode, "if %s != 0 goto L%s", v(reg), labels(label));
 			break;
 		case OP_IF_LTZ:
-			info(opcode, "if v%d <  0 goto L%s", reg, labels(label));
+			info(opcode, "if %s <  0 goto L%s", v(reg), labels(label));
 			break;
 		case OP_IF_GEZ:
-			info(opcode, "if v%d >= 0 goto L%s", reg, labels(label));
+			info(opcode, "if %s >= 0 goto L%s", v(reg), labels(label));
 			break;
 		case OP_IF_GTZ:
-			info(opcode, "if v%d >  0 goto L%s", reg, labels(label));
+			info(opcode, "if %s >  0 goto L%s", v(reg), labels(label));
 			break;
 		case OP_IF_LEZ:
-			info(opcode, "if v%d <= 0 goto L%s", reg, labels(label));
+			info(opcode, "if %s <= 0 goto L%s", v(reg), labels(label));
 			break;
 		}
 		super.visitJumpInsn(opcode, label, reg);
@@ -495,22 +531,22 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 	public void visitJumpInsn(int opcode, Label label, int reg1, int reg2) {
 		switch (opcode) {
 		case OP_IF_EQ:
-			info(opcode, "if v%d == v%d goto L%s", reg1, reg2, labels(label));
+			info(opcode, "if %s == %s goto L%s", v(reg1), v(reg2), labels(label));
 			break;
 		case OP_IF_NE:
-			info(opcode, "if v%d != v%d goto L%s", reg1, reg2, labels(label));
+			info(opcode, "if %s != %s goto L%s", v(reg1), v(reg2), labels(label));
 			break;
 		case OP_IF_LT:
-			info(opcode, "if v%d <  v%d goto L%s", reg1, reg2, labels(label));
+			info(opcode, "if %s <  %s goto L%s", v(reg1), v(reg2), labels(label));
 			break;
 		case OP_IF_GE:
-			info(opcode, "if v%d >= v%d goto L%s", reg1, reg2, labels(label));
+			info(opcode, "if %s >= %s goto L%s", v(reg1), v(reg2), labels(label));
 			break;
 		case OP_IF_GT:
-			info(opcode, "if v%d >  v%d goto L%s", reg1, reg2, labels(label));
+			info(opcode, "if %s >  %s goto L%s", v(reg1), v(reg2), labels(label));
 			break;
 		case OP_IF_LE:
-			info(opcode, "if v%d <= v%d goto L%s", reg1, reg2, labels(label));
+			info(opcode, "if %s <= %s goto L%s", v(reg1), v(reg2), labels(label));
 			break;
 		}
 		super.visitJumpInsn(opcode, label, reg1, reg2);
@@ -554,15 +590,15 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 	@Override
 	public void visitLdcInsn(int opcode, Object value, int reg) {
 		if (value instanceof String)
-			info(opcode, "v%d=\"%s\"", reg, value);
+			info(opcode, "%s=\"%s\"", v(reg), ((String) value).replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t"));
 		else if (value instanceof Type) {
-			info(opcode, "v%d=%s.class", reg, ((Type) value).getClassName());
+			info(opcode, "%s=%s.class", v(reg), ((Type) value).getClassName());
 		} else if (value instanceof Integer) {
-			info(opcode, "v%d=0x%08x  // int:%d   float:%f", reg, value, value, Float.intBitsToFloat((Integer) value));
+			info(opcode, "%s=0x%08x  // int:%d   float:%f", v(reg), value, value, Float.intBitsToFloat((Integer) value));
 		} else if (value instanceof Long) {
-			info(opcode, "v%d=0x%016x  // long:%d   double:%f", reg, value, value, Double.longBitsToDouble((Long) value));
+			info(opcode, "%s=0x%016x  // long:%d   double:%f", v(reg), value, value, Double.longBitsToDouble((Long) value));
 		} else {
-			info(opcode, "v%d=%s  //", reg, value);
+			info(opcode, "%s=%s  //", v(reg), value);
 		}
 		super.visitLdcInsn(opcode, value, reg);
 	}
@@ -594,7 +630,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 	 */
 	@Override
 	public void visitLookupSwitchInsn(int opcode, int reg, Label label, int[] cases, Label[] label2) {
-		info(opcode, "switch(v%d)", reg);
+		info(opcode, "switch(%s)", v(reg));
 		for (int i = 0; i < cases.length; i++) {
 			info(-1, "case %d: goto L%s", cases[i], labels(label2[i]));
 		}
@@ -615,7 +651,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 			int i = 0;
 			StringBuilder sb = new StringBuilder();
 			for (int j = 0; j < method.getType().getParameterTypes().length; j++) {
-				sb.append('v').append(regs[i++]).append(',');
+				sb.append(v(regs[i++])).append(',');
 			}
 			if (sb.length() > 0) {
 				sb.deleteCharAt(sb.length() - 1);
@@ -623,7 +659,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 			if (method.getType().getReturnType().equals("V")) {
 				info(opcode, "%s.%s(%s)  //%s", c(method.getOwner()), method.getName(), sb.toString(), method.toString());
 			} else {
-				info(opcode, "v%d=%s.%s(%s)  //%s", saveTo, c(method.getOwner()), method.getName(), sb.toString(), method.toString());
+				info(opcode, "%s=%s.%s(%s)  //%s", v(saveTo), c(method.getOwner()), method.getName(), sb.toString(), method.toString());
 
 			}
 		}
@@ -635,15 +671,21 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 			int i = 1;
 			StringBuilder sb = new StringBuilder();
 			for (int j = 0; j < method.getType().getParameterTypes().length; j++) {
-				sb.append(',').append('v').append(regs[i++]);
+				sb.append(',').append(v(regs[i++]));
 			}
 			if (sb.length() > 0) {
 				sb.deleteCharAt(0);
 			}
+			int reg0 = regs[0];
+			String n = v(reg0);
+			if (reg0 == this.thisReg && this.thisTypeName != null && (!this.thisTypeName.equals(method.getOwner()))) {
+				n = "super";
+			}
 			if (method.getType().getReturnType().equals("V")) {
-				info(opcode, "v%d.%s(%s)  //%s", regs[0], method.getName(), sb.toString(), method.toString());
+
+				info(opcode, "%s.%s(%s)  //%s", n, method.getName(), sb.toString(), method.toString());
 			} else {
-				info(opcode, "v%d=v%d.%s(%s)  //%s", saveTo, regs[0], method.getName(), sb.toString(), method.toString());
+				info(opcode, "%s=%s.%s(%s)  //%s", v(saveTo), n, method.getName(), sb.toString(), method.toString());
 
 			}
 		}
@@ -659,7 +701,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 	 */
 	@Override
 	public void visitTableSwitchInsn(int opcode, int reg, int first_case, int last_case, Label label, Label[] labels) {
-		info(opcode, "switch(v%d)", reg);
+		info(opcode, "switch(%s)", v(reg));
 		for (int i = 0; i < labels.length; i++) {
 			info(opcode, "case %d: goto L%s", first_case + i, labels(labels[i]));
 		}
@@ -712,13 +754,13 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 	public void visitTypeInsn(int opcode, String type, int toReg) {
 		switch (opcode) {
 		case OP_NEW_INSTANCE:
-			info(opcode, "v%d=NEW %s", toReg, type);
+			info(opcode, "%s=NEW %s", v(toReg), type);
 			break;
 		case OP_CONST_CLASS:
-			info(opcode, "v%d=%s.class", toReg, Type.getType(type).getClassName());
+			info(opcode, "%s=%s.class", v(toReg), Type.getType(type).getClassName());
 			break;
 		case OP_CHECK_CAST:
-			info(opcode, "v%d=(%s) v%d", toReg, Type.getType(type).getClassName(), toReg);
+			info(opcode, "%s=(%s) %s", v(toReg), Type.getType(type).getClassName(), toReg);
 			break;
 		}
 		super.visitTypeInsn(opcode, type, toReg);
@@ -733,7 +775,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 	public void visitTypeInsn(int opcode, String type, int toReg, int fromReg) {
 		switch (opcode) {
 		case OP_INSTANCE_OF:
-			info(opcode, "v%d=v%d instanceof %s", toReg, fromReg, Type.getType(type).getClassName());
+			info(opcode, "%s=%s instanceof %s", v(toReg), v(fromReg), Type.getType(type).getClassName());
 			break;
 		}
 		super.visitTypeInsn(opcode, type, toReg, fromReg);
@@ -751,21 +793,21 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 		case OP_MOVE_RESULT:
 		case OP_MOVE_RESULT_WIDE:
 		case OP_MOVE_EXCEPTION:
-			info(opcode, "v%d=TEMP", reg);
+			info(opcode, "%s=TEMP", v(reg));
 			break;
 		case OP_THROW:
-			info(opcode, "throw v%d", reg);
+			info(opcode, "throw %s", v(reg));
 			break;
 		case OP_RETURN_OBJECT:
 		case OP_RETURN:
 		case OP_RETURN_WIDE:
-			info(opcode, "return v%d", reg);
+			info(opcode, "return %s", v(reg));
 			break;
 		case OP_MONITOR_ENTER:
-			info(opcode, "lock v%d", reg);
+			info(opcode, "lock %s", v(reg));
 			break;
 		case OP_MONITOR_EXIT:
-			info(opcode, "unlock v%d", reg);
+			info(opcode, "unlock %s", v(reg));
 			break;
 		}
 		super.visitVarInsn(opcode, reg, type);
@@ -780,7 +822,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 	public void visitFilledNewArrayIns(int opcode, String type, int[] regs) {
 		info(opcode, "TEMP=new %s[%d]", Type.getType(type).getElementType().getClassName(), regs.length);
 		for (int i = 0; i < regs.length; i++) {
-			info(opcode, "TEMP[%d]=v%d", i, regs[i]);
+			info(opcode, "TEMP[%d]=%s", i, v(regs[i]));
 		}
 		super.visitFilledNewArrayIns(opcode, type, regs);
 	}
