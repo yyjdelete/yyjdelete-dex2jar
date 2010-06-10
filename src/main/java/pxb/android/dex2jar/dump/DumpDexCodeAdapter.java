@@ -745,7 +745,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 	 * @see pxb.android.dex2jar.visitors.DexCodeAdapter#visitVarInsn(int, int)
 	 */
 	@Override
-	public void visitVarInsn(int opcode, int reg) {
+	public void visitVarInsn(int opcode, int reg, Type type) {
 		switch (opcode) {
 		case OP_MOVE_RESULT_OBJECT:
 		case OP_MOVE_RESULT:
@@ -768,7 +768,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 			info(opcode, "unlock v%d", reg);
 			break;
 		}
-		super.visitVarInsn(opcode, reg);
+		super.visitVarInsn(opcode, reg, type);
 	}
 
 	/*

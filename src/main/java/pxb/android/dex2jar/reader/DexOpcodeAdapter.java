@@ -47,7 +47,7 @@ public class DexOpcodeAdapter implements DexOpcodes, DexInternalOpcode {
 	// private static final Logger log =
 	// LoggerFactory.getLogger(ToAsmDexOpcodeAdapter.class);
 
-	public void visit(int opcode, int arg1, Label toLabel) {
+	public void visit(int opcode, int arg1, Label toLabel, Type type) {
 
 		switch (opcode) {
 
@@ -142,7 +142,7 @@ public class DexOpcodeAdapter implements DexOpcodes, DexInternalOpcode {
 		case OP_MONITOR_EXIT:
 			//
 		{
-			dcv.visitVarInsn(opcode, arg1);
+			dcv.visitVarInsn(opcode, arg1, type);
 		}
 			break;
 		case OP_CONST_4: {

@@ -12,7 +12,6 @@ import org.junit.Test;
 
 import pxb.android.dex2jar.Method;
 import pxb.android.dex2jar.reader.DexFileReader;
-import pxb.android.dex2jar.v3.V3AccessFlagsAdapter;
 import pxb.android.dex2jar.v4.V4CodeAdapter;
 import pxb.android.dex2jar.v4.optimize.Optimizer;
 import pxb.android.dex2jar.visitors.DexCodeVisitor;
@@ -32,8 +31,6 @@ public class V4Test {
 			File f = (File) it.next();
 			byte[] data = FileUtils.readFileToByteArray(f);
 			DexFileReader reader = new DexFileReader(data);
-			V3AccessFlagsAdapter afa = new V3AccessFlagsAdapter();
-			reader.accept(afa);
 			reader.accept(new EmptyVisitor() {
 				Method method;
 

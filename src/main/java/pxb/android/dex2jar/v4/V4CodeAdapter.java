@@ -56,8 +56,6 @@ import pxb.android.dex2jar.visitors.DexCodeVisitor;
  * @version $Id$
  */
 public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
-	protected int _regcount = 0;
-
 	/**
 	 * @param method
 	 * @param mv
@@ -121,15 +119,6 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	 */
 	public void visitEnd() {
 		System.out.println(insnList);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitTotalRegSize(int)
-	 */
-	public void visitTotalRegSize(int totalRegistersSize) {
-		_regcount = totalRegistersSize + 1;
 	}
 
 	/*
@@ -480,10 +469,6 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	 */
 	public void visitLabel(Label label) {
 		insnList.add(new LabelFn(label));
-		if (handlers.containsKey(label)) {
-			stack_value = newReg();
-			insnList.add(stack_value, new ExValue(handlers.get(label)));
-		}
 	}
 
 	/*
@@ -540,12 +525,6 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 			insnList.add(new LookupSwitchFn(new RegValue(reg), defaultOffset, cases, labels));
 			break;
 		}
-	}
-
-	private int stack_value = -1;
-
-	protected int newReg() {
-		return ++_regcount;
 	}
 
 	/*
@@ -642,13 +621,15 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	 * 
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitVarInsn(int, int)
 	 */
-	public void visitVarInsn(int opcode, int reg) {
+	public void visitVarInsn(int opcode, int reg, Type type) {
 		switch (opcode) {
-		case OP_MOVE_RESULT_OBJECT:// move-result-object
-		case OP_MOVE_RESULT:
+		// case OP_MOVE_RESULT_OBJECT:// move-result-object
+		// case OP_MOVE_RESULT:
+		// case OP_MOVE_RESULT_WIDE:
+		// insnList.add(reg, new RegValue(stack_value));
+		// break;
 		case OP_MOVE_EXCEPTION:
-		case OP_MOVE_RESULT_WIDE:
-			insnList.add(reg, new RegValue(stack_value));
+			insnList.add(reg, new ExValue(type));
 			break;
 		case OP_THROW:
 		case OP_RETURN:
@@ -664,6 +645,15 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		default:
 			throw new RuntimeException(String.format("Not support Opcode:[0x%04x]=%s yet!", opcode, DexOpcodeDump.dump(opcode)));
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitTotalRegSize(int)
+	 */
+	public void visitTotalRegSize(int totalRegistersSize) {
+
 	}
 
 }

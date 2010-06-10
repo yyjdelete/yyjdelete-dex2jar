@@ -45,12 +45,24 @@ public class StaticValue implements Value {
 	 * @see pxb.android.dex2jar.v4.tree.Value#accept(org.objectweb.asm.Type, org.objectweb.asm.MethodVisitor)
 	 */
 	public void accept(Type type, MethodVisitor mv) {
-		// TODO
-		mv.visitLdcInsn(value);
+		Object v = value;
+		if (value instanceof Integer) {
+			if (type.equals(Type.FLOAT_TYPE)) {
+				v = Float.intBitsToFloat((Integer) value);
+			}
+		} else if (value instanceof Long) {
+			if (type.equals(Type.DOUBLE_TYPE)) {
+				v = Double.longBitsToDouble((Long) value);
+			}
+		}
+		mv.visitLdcInsn(v);
 	}
 
 	public String toString() {
-		return "" + value;
+		if (value instanceof String) {
+			return "\"" + value + "\"";
+		} else
+			return "" + value;
 	}
 
 }

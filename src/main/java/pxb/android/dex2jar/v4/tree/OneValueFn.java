@@ -37,6 +37,8 @@ public class OneValueFn extends Fn implements DexOpcodes, Opcodes {
 	 */
 	public OneValueFn(int opcode, Value value) {
 		super();
+		this.opcode = opcode;
+		this.value = value;
 	}
 
 	/*
@@ -144,7 +146,47 @@ public class OneValueFn extends Fn implements DexOpcodes, Opcodes {
 		mv.visitInsn(asmOpcode);
 	}
 
-	/* (non-Javadoc)
+	public String toString() {
+		switch (opcode) {
+		case OP_NEG_INT:
+		case OP_NEG_LONG:
+		case OP_NEG_FLOAT:
+		case OP_NEG_DOUBLE:
+			return "-(" + value + ")";
+		case OP_NOT_INT:
+		case OP_NOT_LONG:
+			return "!(" + value + ")";
+		case OP_INT_TO_LONG:
+		case OP_FLOAT_TO_LONG:
+		case OP_DOUBLE_TO_LONG:
+			return "(long)(" + value + ")";
+		case OP_INT_TO_FLOAT:
+		case OP_LONG_TO_FLOAT:
+		case OP_DOUBLE_TO_FLOAT:
+			return "(float)(" + value + ")";
+		case OP_INT_TO_DOUBLE:
+		case OP_LONG_TO_DOUBLE:
+		case OP_FLOAT_TO_DOUBLE:
+			return "(double)(" + value + ")";
+		case OP_LONG_TO_INT:
+		case OP_FLOAT_TO_INT:
+		case OP_DOUBLE_TO_INT:
+			return "(int)(" + value + ")";
+		case OP_INT_TO_BYTE:
+			return "(byte)(" + value + ")";
+		case OP_INT_TO_CHAR:
+			return "(char)(" + value + ")";
+		case OP_INT_TO_SHORT:
+			return "(short)(" + value + ")";
+		case OP_ARRAY_LENGTH:
+			return "(" + value + ").length";
+		}
+		throw new RuntimeException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see pxb.android.dex2jar.v4.tree.Fn#inValues()
 	 */
 	@Override
