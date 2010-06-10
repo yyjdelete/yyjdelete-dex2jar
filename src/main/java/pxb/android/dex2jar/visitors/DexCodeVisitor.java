@@ -16,6 +16,7 @@
 package pxb.android.dex2jar.visitors;
 
 import org.objectweb.asm.Label;
+import org.objectweb.asm.Type;
 
 import pxb.android.dex2jar.Field;
 import pxb.android.dex2jar.Method;
@@ -403,7 +404,7 @@ public interface DexCodeVisitor {
 	 * 		//case OP_MOVE_RESULT_OBJECT:
 	 * 		//case OP_MOVE_RESULT:
 	 * 		//case OP_MOVE_RESULT_WIDE:
-	 * 		case OP_MOVE_EXCEPTION:
+	 * 		case OP_MOVE_EXCEPTION:  // type for this
 	 * 		case OP_THROW:
 	 * 		case OP_RETURN_OBJECT:
 	 * 		case OP_RETURN:
@@ -414,8 +415,9 @@ public interface DexCodeVisitor {
 	 * 
 	 * @param opcode
 	 * @param arg1
+	 * @param type
 	 */
-	void visitVarInsn(int opcode, int reg);
+	void visitVarInsn(int opcode, int reg, Type type);
 
 	void visitFilledNewArrayIns(int opcode, String type, int[] regs);
 

@@ -16,6 +16,7 @@
 package pxb.android.dex2jar.visitors;
 
 import org.objectweb.asm.Label;
+import org.objectweb.asm.Type;
 
 import pxb.android.dex2jar.Field;
 import pxb.android.dex2jar.Method;
@@ -197,8 +198,8 @@ public class DexCodeAdapter implements DexCodeVisitor {
 	 * 
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitVarInsn(int, int)
 	 */
-	public void visitVarInsn(int opcode, int reg) {
-		dcv.visitVarInsn(opcode, reg);
+	public void visitVarInsn(int opcode, int reg, Type type) {
+		dcv.visitVarInsn(opcode, reg, type);
 	}
 
 	/*

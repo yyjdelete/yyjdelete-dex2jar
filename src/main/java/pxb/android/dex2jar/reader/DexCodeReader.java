@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -295,7 +296,6 @@ public class DexCodeReader implements DexOpcodes {
 		for (TryCatchNode tc : tcs) {
 			dcv.visitTryCatch(tc.start, tc.end, tc.handler, tc.type);
 		}
-		tcs = null;
 		tryEndOffsets = null;
 
 		// 处理指令
@@ -312,9 +312,21 @@ public class DexCodeReader implements DexOpcodes {
 					log.debug(String.format("%04x| %02x%02x           %s", i, opcode, a, DexOpcodeDump.dump(opcode)));
 				}
 				if (opcode == OP_GOTO) {
-					tadoa.visit(opcode, a, labels.get(i + ((byte) a)));
+					tadoa.visit(opcode, a, labels.get(i + ((byte) a)), null);
+				} else if (opcode == OP_MOVE_EXCEPTION) {
+
+					String t = null;
+					Label h = labels.get(i);
+					for (TryCatchNode tc : tcs) {
+						if (tc.handler.equals(h)) {
+							t = tc.type;
+							break;
+						}
+					}
+					tadoa.visit(opcode, a, null, t == null ? null : Type.getType(t));
+
 				} else {
-					tadoa.visit(opcode, a, null);
+					tadoa.visit(opcode, a, null, null);
 				}
 				i += 1;
 				break;
@@ -357,10 +369,10 @@ public class DexCodeReader implements DexOpcodes {
 					log.debug(String.format("%04x| %02x%02x %04x %04x %s", i, opcode, a, Short.reverseBytes(b), Short.reverseBytes(c), DexOpcodeDump
 							.dump(opcode)));
 				}
-				
-				//当前指令为方法调用
-				//并且下一条指令为MOVE_RESULT*合并两条指令
-				
+
+				// 当前指令为方法调用
+				// 并且下一条指令为MOVE_RESULT*合并两条指令
+
 				int methodSaveTo = -1;
 				int skip = 0;
 				int ipp = 3;

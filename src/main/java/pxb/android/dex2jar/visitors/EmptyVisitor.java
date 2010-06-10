@@ -17,6 +17,7 @@ package pxb.android.dex2jar.visitors;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Label;
+import org.objectweb.asm.Type;
 
 import pxb.android.dex2jar.Field;
 import pxb.android.dex2jar.Method;
@@ -235,7 +236,7 @@ public class EmptyVisitor implements DexFileVisitor, DexClassVisitor, DexMethodV
 	 * 
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitVarInsn(int, int)
 	 */
-	public void visitVarInsn(int opcode, int reg) {
+	public void visitVarInsn(int opcode, int reg, Type type) {
 
 	}
 

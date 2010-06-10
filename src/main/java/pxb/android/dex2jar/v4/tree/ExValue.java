@@ -44,6 +44,6 @@ public class ExValue implements Value {
 	}
 
 	public String toString() {
-		return "Exception " + type == null ? "" : type.getClassName();
+		return "Exception " + (type == null ? "all" : type.getClassName());
 	}
 }

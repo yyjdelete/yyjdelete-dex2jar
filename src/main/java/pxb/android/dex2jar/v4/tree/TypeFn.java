@@ -66,7 +66,19 @@ public class TypeFn extends Fn implements DexOpcodes, Opcodes {
 		}
 	}
 
-	/* (non-Javadoc)
+	public String toString() {
+		switch (opcode) {
+		case OP_CHECK_CAST:
+			return "(" + type.getClassName() + ")(" + srcValue + ")";
+		case OP_INSTANCE_OF:
+			return "(" + srcValue + " instanceof " + type.getClassName() + ")";
+		}
+		throw new RuntimeException();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see pxb.android.dex2jar.v4.tree.Fn#inValues()
 	 */
 	@Override
