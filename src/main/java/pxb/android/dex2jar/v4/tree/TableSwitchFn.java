@@ -28,8 +28,6 @@ public class TableSwitchFn extends SwitchFn {
 	Value value;
 	int first_case;
 	int last_case;
-	Label default_label;
-	Label[] labels;
 
 	/**
 	 * @param value
@@ -57,7 +55,9 @@ public class TableSwitchFn extends SwitchFn {
 		mv.visitTableSwitchInsn(first_case, last_case, default_label, labels);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see pxb.android.dex2jar.v4.tree.Fn#inValues()
 	 */
 	@Override

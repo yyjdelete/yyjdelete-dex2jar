@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pxb.android.dex2jar.v4;
+package pxb.android.dex2jar.v4.node;
 
+import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -55,28 +58,19 @@ import pxb.android.dex2jar.visitors.DexCodeVisitor;
  * @author Panxiaobo [pxb1988@gmail.com]
  * @version $Id$
  */
-public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
+public class DexCodeNode implements DexCodeVisitor, Opcodes, DexOpcodes {
 	/**
 	 * @param method
 	 * @param mv
 	 */
-	public V4CodeAdapter() {
+	public DexCodeNode() {
 		super();
 	}
 
-	public void visitInitLocal(int... args) {
+	public void visitInitLocal(int[] args, Type[] types) {
 	}
 
-	protected InsnList insnList = new InsnList();
-
-	static final int ARRAY_TYPE_MAP[] = new int[] { Type.INT,// 75 OP_APUT 68 OP_AGET
-			Type.LONG, // 76 OP_APUT_WIDE 69 OP_AGET_WIDE
-			Type.OBJECT,// 77 OP_APUT_OBJECT 70 OP_AGET_OBJECT
-			Type.BOOLEAN,// 78 OP_APUT_BOOLEAN 71 OP_AGET_BOOLEAN
-			Type.BYTE, // 79 OP_APUT_BYTE 72 OP_AGET_BYTE
-			Type.CHAR, // 80 OP_APUT_CHAR 73 OP_AGET_CHAR
-			Type.SHORT // 81 OP_APUT_SHORT 74 OP_AGET_SHORT
-	};
+	public InsnList insnList = new InsnList();
 
 	/*
 	 * (non-Javadoc)
@@ -88,9 +82,9 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 		// 69~74 get
 		try {
 			if (opcode >= OP_APUT) {
-				insnList.add(ArrayFn.aput(ARRAY_TYPE_MAP[opcode - OP_APUT], new RegValue(array), new RegValue(index), new RegValue(regFromOrTo)));
+				insnList.add(ArrayFn.aput(ArrayFn.MAP[opcode - OP_APUT], new RegValue(array), new RegValue(index), new RegValue(regFromOrTo)));
 			} else {
-				insnList.add(regFromOrTo, ArrayFn.aget(ARRAY_TYPE_MAP[opcode - OP_AGET], new RegValue(array), new RegValue(index)));
+				insnList.add(regFromOrTo, ArrayFn.aget(ArrayFn.MAP[opcode - OP_AGET], new RegValue(array), new RegValue(index)));
 			}
 		} catch (Exception e) {
 			throw new RuntimeException(String.format("Exception on Opcode:[0x%04x]=%s", opcode, DexOpcodeDump.dump(opcode)), e);
@@ -567,6 +561,8 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 
 	protected Map<Label, Type> handlers = new HashMap<Label, Type>();
 
+	public List<TryCatchNode> tryCatches = new ArrayList();
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -578,6 +574,19 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 			type = Type.getDescriptor(Throwable.class);
 		}
 		handlers.put(handler, Type.getType(type));
+
+		TryCatchNode t = new TryCatchNode();
+		t.start = start;
+		t.end = end;
+		if (tryCatches.contains(t)) {
+			t = tryCatches.get(tryCatches.indexOf(t));
+		} else {
+			tryCatches.add(t);
+		}
+		if (type == null) {
+			type = "";
+		}
+		t.handlers.add(new AbstractMap.SimpleEntry(type, handler));
 	}
 
 	protected Set<Integer> NEW_INS = new HashSet<Integer>();
@@ -653,6 +662,14 @@ public class V4CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitTotalRegSize(int)
 	 */
 	public void visitTotalRegSize(int totalRegistersSize) {
+
+	}
+
+	/**
+	 * @param dcv
+	 */
+	public void accept(DexCodeVisitor dcv) {
+		// TODO Auto-generated method stub
 
 	}
 

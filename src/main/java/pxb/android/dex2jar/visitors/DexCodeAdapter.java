@@ -108,8 +108,8 @@ public class DexCodeAdapter implements DexCodeVisitor {
 		dcv.visitInInsn(opcode, saveToReg, opReg, opValueOrReg);
 	}
 
-	public void visitInitLocal(int... args) {
-		dcv.visitInitLocal(args);
+	public void visitInitLocal(int[] args, Type[] types) {
+		dcv.visitInitLocal(args, types);
 	}
 
 	/*

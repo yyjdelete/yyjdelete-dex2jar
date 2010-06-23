@@ -85,7 +85,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 	String thisTypeName;
 
 	@Override
-	public void visitInitLocal(int... args) {
+	public void visitInitLocal(int[] args, Type[] types) {
 		int i = 0;
 		if ((m.getAccessFlags() & Opcodes.ACC_STATIC) == 0) {
 			int reg = args[i++];
@@ -116,7 +116,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 			}
 			_m.put(reg, "param" + type + "_" + reg);
 		}
-		super.visitInitLocal(args);
+		super.visitInitLocal(args, types);
 	}
 
 	private static String c(String type) {

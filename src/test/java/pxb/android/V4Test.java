@@ -12,8 +12,8 @@ import org.junit.Test;
 
 import pxb.android.dex2jar.Method;
 import pxb.android.dex2jar.reader.DexFileReader;
-import pxb.android.dex2jar.v4.V4CodeAdapter;
-import pxb.android.dex2jar.v4.optimize.Optimizer;
+import pxb.android.dex2jar.v4.node.DexCodeNode;
+import pxb.android.dex2jar.v4.optimize.A;
 import pxb.android.dex2jar.visitors.DexCodeVisitor;
 import pxb.android.dex2jar.visitors.DexMethodVisitor;
 import pxb.android.dex2jar.visitors.EmptyVisitor;
@@ -23,6 +23,7 @@ import pxb.android.dex2jar.visitors.EmptyVisitor;
  * 
  */
 public class V4Test {
+	@SuppressWarnings("unchecked")
 	@Test
 	public void test() throws IOException {
 		File file = new File("target/test-classes/dexes");
@@ -42,10 +43,11 @@ public class V4Test {
 
 				@Override
 				public DexCodeVisitor visitCode() {
-					return new V4CodeAdapter() {
+					return new DexCodeNode() {
 						public void visitEnd() {
 							super.visitEnd();
-							new Optimizer(method, this.insnList).optimize();
+							new A().a(this);
+//							new Optimizer(method, this.insnList).optimize();
 						}
 					};
 				}

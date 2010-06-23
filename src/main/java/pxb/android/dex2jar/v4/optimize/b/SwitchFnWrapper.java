@@ -13,44 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pxb.android.dex2jar.v4.tree;
+package pxb.android.dex2jar.v4.optimize.b;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
+import pxb.android.dex2jar.v4.tree.SwitchFn;
+import pxb.android.dex2jar.v4.tree.Value;
+
 /**
  * @author Panxiaobo [pxb1988@gmail.com]
  * 
  */
-public class LookupSwitchFn extends SwitchFn {
-	Value value;
+public class SwitchFnWrapper extends SwitchFn {
+	SwitchFn switchFn;
 
-	int[] cases;
-
-	/**
-	 * @param value
-	 * @param defaultOffset
-	 * @param cases
-	 * @param labels
-	 */
-	public LookupSwitchFn(Value value, Label defaultOffset, int[] cases, Label[] labels) {
-		super();
-		this.value = value;
-		this.default_label = defaultOffset;
-		this.cases = cases;
-		this.labels = labels;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see pxb.android.dex2jar.v4.tree.Value#accept(org.objectweb.asm.Type, org.objectweb.asm.MethodVisitor)
-	 */
-	public void accept(Type suggest, MethodVisitor mv) {
-		value.accept(Type.INT_TYPE, mv);
-		mv.visitLookupSwitchInsn(this.default_label, cases, labels);
-	}
+	Block[] blocks;
+	Block defaultBlock;
 
 	/*
 	 * (non-Javadoc)
@@ -59,6 +39,22 @@ public class LookupSwitchFn extends SwitchFn {
 	 */
 	@Override
 	public Value[] inValues() {
-		return asList(value);
+		return switchFn.inValues();
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see pxb.android.dex2jar.v4.tree.Value#accept(org.objectweb.asm.Type, org.objectweb.asm.MethodVisitor)
+	 */
+	public void accept(Type suggest, MethodVisitor mv) {
+		Label[] labels = new Label[blocks.length];
+		for (int i = 0; i < blocks.length; i++) {
+			labels[i] = blocks[i].label;
+		}
+		switchFn.labels = labels;
+		switchFn.default_label = defaultBlock.label;
+		switchFn.accept(suggest, mv);
+	}
+
 }

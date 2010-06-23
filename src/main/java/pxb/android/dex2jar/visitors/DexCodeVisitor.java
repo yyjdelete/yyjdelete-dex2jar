@@ -31,7 +31,7 @@ public interface DexCodeVisitor {
 	 * 
 	 * @param args
 	 */
-	void visitInitLocal(int... args);
+	void visitInitLocal(int[] args, Type[] types);
 
 	/**
 	 * <pre>

@@ -19,6 +19,8 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
+import pxb.android.dex2jar.v4.tree.Fn.FnType;
+
 /**
  * @author Panxiaobo [pxb1988@gmail.com]
  * 
@@ -38,6 +40,16 @@ public class LabelFn extends Fn {
 	/*
 	 * (non-Javadoc)
 	 * 
+	 * @see pxb.android.dex2jar.v4.tree.Fn#getFnType()
+	 */
+	@Override
+	public FnType getFnType() {
+		return FnType.LABEL;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see pxb.android.dex2jar.v4.tree.Value#accept(org.objectweb.asm.Type, org.objectweb.asm.MethodVisitor)
 	 */
 	public void accept(Type suggest, MethodVisitor mv) {
@@ -45,10 +57,12 @@ public class LabelFn extends Fn {
 	}
 
 	public String toString() {
-		return "Label :" + label;
+		return "Label: " + label;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see pxb.android.dex2jar.v4.tree.Fn#inValues()
 	 */
 	@Override
