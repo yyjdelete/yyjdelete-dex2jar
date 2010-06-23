@@ -20,13 +20,15 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import pxb.android.dex2jar.v4.tree.Fn.FnType;
+
 /**
  * @author Panxiaobo [pxb1988@gmail.com]
  * 
  */
 public class GotoFn extends Fn {
 
-	Label label;
+	public Label label;
 
 	/**
 	 * @param label
@@ -39,18 +41,29 @@ public class GotoFn extends Fn {
 	/*
 	 * (non-Javadoc)
 	 * 
+	 * @see pxb.android.dex2jar.v4.tree.Fn#getFnType()
+	 */
+	@Override
+	public FnType getFnType() {
+		return FnType.GOTO;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see pxb.android.dex2jar.v4.tree.Value#accept(org.objectweb.asm.Type, org.objectweb.asm.MethodVisitor)
 	 */
 	public void accept(Type suggest, MethodVisitor mv) {
 		mv.visitJumpInsn(Opcodes.GOTO, label);
 	}
 
-
 	public String toString() {
 		return "goto " + label;
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see pxb.android.dex2jar.v4.tree.Fn#inValues()
 	 */
 	@Override

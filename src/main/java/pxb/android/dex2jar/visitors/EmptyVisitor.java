@@ -278,7 +278,7 @@ public class EmptyVisitor implements DexFileVisitor, DexClassVisitor, DexMethodV
 
 	}
 
-	public void visitInitLocal(int... args) {
+	public void visitInitLocal(int[] args, Type[] types) {
 
 	}
 

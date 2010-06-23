@@ -13,26 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pxb.android.dex2jar.v4.tree;
+package pxb.android.dex2jar.v4.optimize.b;
 
-import org.objectweb.asm.Label;
+import pxb.android.dex2jar.v4.tree.JumpFn;
 
 /**
  * @author Panxiaobo [pxb1988@gmail.com]
  * 
  */
-public abstract class SwitchFn extends Fn {
-	public Label[] labels;
-	public Label default_label;
+public class JumpBlock extends Block {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see pxb.android.dex2jar.v4.tree.Fn#getFnType()
-	 */
-	@Override
-	public FnType getFnType() {
-		return FnType.SWITCH;
+	public Block success;
+	public JumpFn fn;
+
+	public String toString() {
+		StringBuilder sb = new StringBuilder(super.toString());
+		sb.append(fn).append("\n");
+		if (success != null) {
+			sb.append("success: ").append(success.id);
+		} else if (fn != null) {
+			sb.append("success: ").append(fn.success);
+		}
+
+		return sb.toString();
 	}
 
 }

@@ -33,11 +33,11 @@ public class ArrayFn extends Fn {
 		super();
 	}
 
-	public static ArrayFn aget(int type, Value arrayReg, Value indexReg) {
+	public static ArrayFn aget(Type type, Value arrayReg, Value indexReg) {
 		return new ArrayFn(false, type, arrayReg, indexReg, null);
 	}
 
-	public static ArrayFn aput(int type, Value arrayReg, Value indexReg, Value fromReg) {
+	public static ArrayFn aput(Type type, Value arrayReg, Value indexReg, Value fromReg) {
 		return new ArrayFn(true, type, arrayReg, indexReg, fromReg);
 	}
 
@@ -48,7 +48,7 @@ public class ArrayFn extends Fn {
 	 * @param indexValue
 	 * @param valueValue
 	 */
-	public ArrayFn(boolean load, int type, Value arrayValue, Value indexValue, Value valueValue) {
+	public ArrayFn(boolean load, Type type, Value arrayValue, Value indexValue, Value valueValue) {
 		super();
 		this.aput = load;
 		this.type = type;
@@ -59,10 +59,7 @@ public class ArrayFn extends Fn {
 
 	public boolean aput = true;
 
-	/**
-	 * @see Type#getSort()
-	 */
-	public int type;
+	public Type type;
 	/**
 	 * Array Object Reg
 	 */
@@ -90,22 +87,19 @@ public class ArrayFn extends Fn {
 		}
 	}
 
-	static Type[] MAP = new Type[] { Type.INT_TYPE, Type.LONG_TYPE, Type.getType(Object.class), Type.BOOLEAN_TYPE, Type.BYTE_TYPE, Type.CHAR_TYPE,
-			Type.SHORT_TYPE,
-
-	};
+	public final static Type[] MAP = new Type[] { Type.INT_TYPE, Type.LONG_TYPE, Type.getType(Object.class), Type.BOOLEAN_TYPE, Type.BYTE_TYPE, Type.CHAR_TYPE,
+			Type.SHORT_TYPE, };
 
 	public void accept(Type suggest, MethodVisitor mv) {
-		Type asmType = MAP[type];
 		if (aput) {
-			arrayValue.accept(Type.getType("[" + asmType.getDescriptor()), mv);
+			arrayValue.accept(Type.getType("[" + type.getDescriptor()), mv);
 			indexValue.accept(Type.INT_TYPE, mv);
-			valueValue.accept(asmType, mv);
-			mv.visitInsn(asmType.getOpcode(Opcodes.IASTORE));
+			valueValue.accept(type, mv);
+			mv.visitInsn(type.getOpcode(Opcodes.IASTORE));
 		} else {
-			arrayValue.accept(Type.getType("[" + asmType.getDescriptor()), mv);
+			arrayValue.accept(Type.getType("[" + type.getDescriptor()), mv);
 			indexValue.accept(Type.INT_TYPE, mv);
-			mv.visitInsn(asmType.getOpcode(Opcodes.IALOAD));
+			mv.visitInsn(type.getOpcode(Opcodes.IALOAD));
 		}
 	}
 

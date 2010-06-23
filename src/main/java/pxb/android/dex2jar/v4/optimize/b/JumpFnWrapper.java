@@ -13,52 +13,63 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pxb.android.dex2jar.v4.tree;
+package pxb.android.dex2jar.v4.optimize.b;
 
-import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+
+import pxb.android.dex2jar.v4.tree.JumpFn;
+import pxb.android.dex2jar.v4.tree.Value;
 
 /**
  * @author Panxiaobo [pxb1988@gmail.com]
  * 
  */
-public class LookupSwitchFn extends SwitchFn {
-	Value value;
+public class JumpFnWrapper extends JumpFn {
 
-	int[] cases;
+	JumpFn fn;
+
+	Block success;
 
 	/**
-	 * @param value
-	 * @param defaultOffset
-	 * @param cases
-	 * @param labels
+	 * @param opcode
+	 * @param success
+	 * @param a
+	 * @param b
 	 */
-	public LookupSwitchFn(Value value, Label defaultOffset, int[] cases, Label[] labels) {
-		super();
-		this.value = value;
-		this.default_label = defaultOffset;
-		this.cases = cases;
-		this.labels = labels;
+	public JumpFnWrapper() {
+		super(-1, null, null, null);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see pxb.android.dex2jar.v4.tree.Value#accept(org.objectweb.asm.Type, org.objectweb.asm.MethodVisitor)
+	 * @see pxb.android.dex2jar.v4.tree.JumpFn#accept(org.objectweb.asm.Type, org.objectweb.asm.MethodVisitor)
 	 */
+	@Override
 	public void accept(Type suggest, MethodVisitor mv) {
-		value.accept(Type.INT_TYPE, mv);
-		mv.visitLookupSwitchInsn(this.default_label, cases, labels);
+		fn.success = success.label;
+		super.accept(suggest, mv);
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see pxb.android.dex2jar.v4.tree.Fn#inValues()
+	 * @see pxb.android.dex2jar.v4.tree.JumpFn#inValues()
 	 */
 	@Override
 	public Value[] inValues() {
-		return asList(value);
+		return fn.inValues();
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see pxb.android.dex2jar.v4.tree.JumpFn#toString()
+	 */
+	@Override
+	public String toString() {
+		return fn.toString();
+	}
+
 }

@@ -19,17 +19,29 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
+import pxb.android.dex2jar.v4.tree.Fn.FnType;
+
 /**
  * @author Panxiaobo [pxb1988@gmail.com]
  * 
  */
 public class JumpFn extends Fn {
 
-	Label success;
+	public Label success;
 	Value a;
 	Value b;
 
 	int opcode;
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see pxb.android.dex2jar.v4.tree.Fn#getFnType()
+	 */
+	@Override
+	public FnType getFnType() {
+		return FnType.JUMP;
+	}
 
 	/**
 	 * @param opcode
@@ -108,30 +120,30 @@ public class JumpFn extends Fn {
 		return asList(a, b);
 	}
 
-//	public void swap() {
-//		switch (opcode) {
-//		case OP_IF_NE:
-//			opcode = OP_IF_EQ;
-//			break;
-//		case OP_IF_EQ:
-//			opcode = OP_IF_NE;
-//			break;
-//		case OP_IF_GT:
-//			opcode = OP_IF_LE;
-//			break;
-//		case OP_IF_GE:
-//			opcode = OP_IF_LT;
-//			break;
-//		case OP_IF_LE:
-//			opcode = OP_IF_GT;
-//			break;
-//		case OP_IF_LT:
-//			opcode = OP_IF_GE;
-//			break;
-//		}
-//		Label label = def;
-//		def = success;
-//		success = label;
-//	}
+	// public void swap() {
+	// switch (opcode) {
+	// case OP_IF_NE:
+	// opcode = OP_IF_EQ;
+	// break;
+	// case OP_IF_EQ:
+	// opcode = OP_IF_NE;
+	// break;
+	// case OP_IF_GT:
+	// opcode = OP_IF_LE;
+	// break;
+	// case OP_IF_GE:
+	// opcode = OP_IF_LT;
+	// break;
+	// case OP_IF_LE:
+	// opcode = OP_IF_GT;
+	// break;
+	// case OP_IF_LT:
+	// opcode = OP_IF_GE;
+	// break;
+	// }
+	// Label label = def;
+	// def = success;
+	// success = label;
+	// }
 
 }

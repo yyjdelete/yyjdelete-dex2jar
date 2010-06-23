@@ -18,6 +18,8 @@ package pxb.android.dex2jar.v4.tree;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
+import pxb.android.dex2jar.v4.tree.Fn.FnType;
+
 /**
  * @author Panxiaobo [pxb1988@gmail.com]
  * 
@@ -26,6 +28,14 @@ public class EndFn extends Fn {
 	int opcode;
 
 	Value value;
+
+	/* (non-Javadoc)
+	 * @see pxb.android.dex2jar.v4.tree.Fn#getFnType()
+	 */
+	@Override
+	public FnType getFnType() {
+		return FnType.END;
+	}
 
 	/**
 	 * @param opcode

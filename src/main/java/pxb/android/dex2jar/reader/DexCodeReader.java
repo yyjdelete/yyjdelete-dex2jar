@@ -110,23 +110,30 @@ public class DexCodeReader implements DexOpcodes {
 		// 处理方法的参数
 		{
 			int args[];
+			Type[] types;
 			int args_index;
 			int i = total_registers_size - in_register_size;
-			if ((method.getAccessFlags() & Opcodes.ACC_STATIC) == 0) {
+			if ((method.getAccessFlags() & Opcodes.ACC_STATIC) == 0) {// a virtual method
 				args = new int[method.getType().getParameterTypes().length + 1];
+				types = new Type[args.length];
 				args[0] = i++;
+				types[0] = Type.getType(method.getOwner()); // this type
 				args_index = 1;
-			} else {
+			} else { // a static method
 				args = new int[method.getType().getParameterTypes().length];
+				types = new Type[args.length];
 				args_index = 0;
 			}
 			for (String type : method.getType().getParameterTypes()) {
-				args[args_index++] = i++;
+				args[args_index] = i;
+				types[args_index] = Type.getType(type);
+				args_index++;
+				i++;
 				if ("D".equals(type) || "J".equals(type)) {// 为Double/Long型特殊处理
 					i++;
 				}
 			}
-			dcv.visitInitLocal(args);
+			dcv.visitInitLocal(args, types);
 			dcv.visitTotalRegSize(total_registers_size);
 		}
 

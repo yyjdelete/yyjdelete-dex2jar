@@ -13,26 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pxb.android.dex2jar.v4.tree;
+package pxb.android.dex2jar.v4.optimize.b;
 
-import org.objectweb.asm.Label;
+import pxb.android.dex2jar.v4.tree.EndFn;
 
 /**
  * @author Panxiaobo [pxb1988@gmail.com]
  * 
  */
-public abstract class SwitchFn extends Fn {
-	public Label[] labels;
-	public Label default_label;
+public class EndBlock extends Block {
+	public EndFn fn;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see pxb.android.dex2jar.v4.tree.Fn#getFnType()
-	 */
-	@Override
-	public FnType getFnType() {
-		return FnType.SWITCH;
+	public String toString() {
+		return super.toString() + fn.toString() + "\n!END";
 	}
-
 }

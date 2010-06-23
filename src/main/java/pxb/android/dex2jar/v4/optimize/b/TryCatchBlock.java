@@ -13,26 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pxb.android.dex2jar.v4.tree;
+package pxb.android.dex2jar.v4.optimize.b;
 
-import org.objectweb.asm.Label;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Panxiaobo [pxb1988@gmail.com]
  * 
  */
-public abstract class SwitchFn extends Fn {
-	public Label[] labels;
-	public Label default_label;
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see pxb.android.dex2jar.v4.tree.Fn#getFnType()
-	 */
-	@Override
-	public FnType getFnType() {
-		return FnType.SWITCH;
-	}
-
+public class TryCatchBlock {
+	public List<Block> trys = new ArrayList();
+	public Map<String, Block> catches = new HashMap();
 }

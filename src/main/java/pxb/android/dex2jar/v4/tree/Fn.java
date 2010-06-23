@@ -40,4 +40,12 @@ public abstract class Fn implements Value, DexOpcodes, Opcodes {
 	protected Value[] asList(Value... vs) {
 		return vs;
 	}
+
+	public enum FnType {
+		LABEL, JUMP, GOTO, SWITCH, OTHER, END
+	}
+
+	public FnType getFnType() {
+		return FnType.OTHER;
+	}
 }
