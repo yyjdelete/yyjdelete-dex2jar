@@ -61,7 +61,7 @@ public class TypeFn extends Fn implements DexOpcodes, Opcodes {
 			mv.visitTypeInsn(CHECKCAST, type.getDescriptor());
 			break;
 		case OP_INSTANCE_OF:
-			srcValue.accept(null, mv);
+			srcValue.accept(Type.getType(Object.class), mv);
 			mv.visitTypeInsn(INSTANCEOF, type.getDescriptor());
 		}
 	}

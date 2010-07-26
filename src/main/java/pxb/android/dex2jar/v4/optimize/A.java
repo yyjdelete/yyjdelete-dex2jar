@@ -27,9 +27,6 @@ import org.objectweb.asm.Label;
 import pxb.android.dex2jar.v4.node.DexCodeNode;
 import pxb.android.dex2jar.v4.node.TryCatchNode;
 import pxb.android.dex2jar.v4.optimize.b.Block;
-import pxb.android.dex2jar.v4.optimize.b.EndBlock;
-import pxb.android.dex2jar.v4.optimize.b.JumpBlock;
-import pxb.android.dex2jar.v4.optimize.b.SwitchBlock;
 import pxb.android.dex2jar.v4.tree.EndFn;
 import pxb.android.dex2jar.v4.tree.Fn;
 import pxb.android.dex2jar.v4.tree.GotoFn;
@@ -37,6 +34,8 @@ import pxb.android.dex2jar.v4.tree.Insn;
 import pxb.android.dex2jar.v4.tree.InsnList;
 import pxb.android.dex2jar.v4.tree.JumpFn;
 import pxb.android.dex2jar.v4.tree.LabelFn;
+import pxb.android.dex2jar.v4.tree.RegValue;
+import pxb.android.dex2jar.v4.tree.StaticValue;
 import pxb.android.dex2jar.v4.tree.SwitchFn;
 
 /**
@@ -59,29 +58,31 @@ public class A {
 				map.put(block.label, block);
 			}
 		}
-		for (int i = 0; i < blocks.size(); i++) {
-			Block block = blocks.get(i);
-			if (block.nextLabel != null) {
-				block.next = map.get(block.nextLabel);
-			}
-			if (block instanceof JumpBlock) {
-				JumpBlock jb = (JumpBlock) block;
-				jb.success = map.get(jb.fn.success);
-			} else if (block instanceof SwitchBlock) {
-				SwitchBlock sb = (SwitchBlock) block;
-				sb.blocks = new Block[sb.fn.labels.length];
-				for (int j = 0; j < sb.blocks.length; j++) {
-					sb.blocks[j] = map.get(sb.fn.labels[j]);
-				}
-				sb.defaultBlock = map.get(sb.fn.default_label);
-			}
-		}
-
 		return null;
 	}
 
 	<T> T last(List<T> list) {
 		return list.get(list.size() - 1);
+	}
+
+	public void i(Block b) {
+		HashMap<Integer, Insn> outs = new HashMap();
+		HashMap<Integer, Insn> ins = new HashMap();
+		for (Insn insn : b.insns) {
+			if (insn.reg >= 0) {
+				outs.put(insn.reg, insn);
+			}
+			if (insn.value instanceof StaticValue) {
+				// ignore
+			} else if (insn.value instanceof RegValue) {
+
+			}
+		}
+
+	}
+
+	public void jump(Block b) {
+
 	}
 
 	public List<Block> cut(InsnList instnList) {
@@ -105,7 +106,7 @@ public class A {
 				case LABEL: {
 					Block block = new Block();
 					block.label = label;
-					block.insn = insns;
+					block.insns = insns;
 					label = ((LabelFn) insn.value).label;
 					block.nextLabel = label;
 					blocks.add(block);
@@ -113,10 +114,10 @@ public class A {
 					break;
 				}
 				case JUMP: {
-					JumpBlock block = new JumpBlock();
+					Block block = new Block();
 					block.label = label;
-					block.insn = insns;
-					block.fn = (JumpFn) insn.value;
+					insns.add(insn);
+					block.insns = insns;
 
 					Insn insnNext = instnList.insns.get(i + 1);
 					if (insnNext.value instanceof LabelFn) {
@@ -131,10 +132,10 @@ public class A {
 				}
 					break;
 				case SWITCH: {
-					SwitchBlock block = new SwitchBlock();
+					Block block = new Block();
 					block.label = label;
-					block.insn = insns;
-					block.fn = (SwitchFn) insn.value;
+					insns.add(insn);
+					block.insns = insns;
 					blocks.add(block);
 					insns = new ArrayList<Insn>();
 				}
@@ -142,7 +143,7 @@ public class A {
 				case GOTO: {
 					Block block = new Block();
 					block.label = label;
-					block.insn = insns;
+					block.insns = insns;
 					block.nextLabel = ((GotoFn) insn.value).label;
 					blocks.add(block);
 					if (i + 1 < instnList.insns.size()) {
@@ -160,10 +161,10 @@ public class A {
 				}
 					break;
 				case END: {
-					EndBlock block = new EndBlock();
+					Block block = new Block();
 					block.label = label;
-					block.insn = insns;
-					block.fn = (EndFn) insn.value;
+					insns.add(insn);
+					block.insns = insns;
 					blocks.add(block);
 					if (i + 1 < instnList.insns.size()) {
 						Insn insnNext = instnList.insns.get(i + 1);
@@ -191,7 +192,7 @@ public class A {
 		if (insns.size() > 0) {
 			Block block = new Block();
 			block.label = label;
-			block.insn = insns;
+			block.insns = insns;
 			blocks.add(block);
 		}
 

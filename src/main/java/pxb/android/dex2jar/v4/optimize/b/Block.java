@@ -28,14 +28,13 @@ import pxb.android.dex2jar.v4.tree.Insn;
  */
 public class Block {
 	public Label label;
-	public List<Insn> insn = new ArrayList<Insn>();
+	public List<Insn> insns = new ArrayList<Insn>();
 	public List<Block> froms = new ArrayList<Block>();
 	public List<Block> to = new ArrayList<Block>();
 
 	protected int id = idc++;
 
 	public static int idc = 0;
-	public Block next;
 
 	public Label nextLabel;
 
@@ -44,16 +43,13 @@ public class Block {
 		if (label != null) {
 			sb.append("Block ").append(id).append('\n');
 		}
-		for (Insn insn : this.insn) {
+		for (Insn insn : this.insns) {
 			sb.append(insn).append('\n');
 		}
-		if (next != null) {
-			sb.append("next: ").append(next.id).append('\n');
-		} else if (nextLabel != null) {
+		if (nextLabel != null) {
 			sb.append("next: ").append(nextLabel).append('\n');
 		}
 		return sb.toString();
-
 	}
 
 }

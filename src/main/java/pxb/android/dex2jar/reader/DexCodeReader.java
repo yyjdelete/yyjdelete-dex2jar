@@ -142,43 +142,49 @@ public class DexCodeReader implements DexOpcodes {
 		// 处理异常处理
 		if (tries_size > 0) {
 			in.push();
-			in.skip(instruction_size * 2);
-			if (in.needPadding()) {
-				in.skip(2);
-			}
-			for (int i = 0; i < tries_size; i++) {
-				int start = in.readIntx();
-				int offset = in.readShortx();
-				int handlers = in.readShortx();
-				in.push();
-				in.skip((tries_size - i - 1) * 8 + handlers);
-				boolean catchAll = false;
-				int listSize = (int) in.readSignedLeb128();
-				if (listSize <= 0) {
-					listSize = -listSize;
-					catchAll = true;
+			try {
+				in.skip(instruction_size * 2);
+				if (in.needPadding()) {
+					in.skip(2);
 				}
-				for (int k = 0; k < listSize; k++) {
-					int type_id = (int) in.readUnsignedLeb128();
-					int handler = (int) in.readUnsignedLeb128();
-					order(start);
-					order(start + offset);
-					tryEndOffsets.add(start + offset);
-					order(handler);
-					String type = dex.getType(type_id);
-					tcs.add(new TryCatchNode(this.labels.get(start), this.labels.get(start + offset), this.labels.get(handler), type));
+				for (int i = 0; i < tries_size; i++) {
+					int start = in.readIntx();
+					int offset = in.readShortx();
+					int handlers = in.readShortx();
+					in.push();
+					try {
+						in.skip((tries_size - i - 1) * 8 + handlers);
+						boolean catchAll = false;
+						int listSize = (int) in.readSignedLeb128();
+						if (listSize <= 0) {
+							listSize = -listSize;
+							catchAll = true;
+						}
+						for (int k = 0; k < listSize; k++) {
+							int type_id = (int) in.readUnsignedLeb128();
+							int handler = (int) in.readUnsignedLeb128();
+							order(start);
+							order(start + offset);
+							tryEndOffsets.add(start + offset);
+							order(handler);
+							String type = dex.getType(type_id);
+							tcs.add(new TryCatchNode(this.labels.get(start), this.labels.get(start + offset), this.labels.get(handler), type));
+						}
+						if (catchAll) {
+							int handler = (int) in.readUnsignedLeb128();
+							order(start);
+							order(start + offset);
+							tryEndOffsets.add(start + offset);
+							order(handler);
+							tcs.add(new TryCatchNode(this.labels.get(start), this.labels.get(start + offset), this.labels.get(handler), null));
+						}
+					} finally {
+						in.pop();
+					}
 				}
-				if (catchAll) {
-					int handler = (int) in.readUnsignedLeb128();
-					order(start);
-					order(start + offset);
-					tryEndOffsets.add(start + offset);
-					order(handler);
-					tcs.add(new TryCatchNode(this.labels.get(start), this.labels.get(start + offset), this.labels.get(handler), null));
-				}
+			} finally {
 				in.pop();
 			}
-			in.pop();
 		}
 		// 处理debug信息
 		if (debug_off != 0) {
@@ -188,146 +194,147 @@ public class DexCodeReader implements DexOpcodes {
 		}
 		// 查找标签
 		in.push();
-		for (int i = 0; i < instruction_size;) {
-			int opcode = in.readByte() & 0xff;
-			int size = DexOpcodeUtil.getSize(opcode);
-			switch (size) {
-			case 1: {
-				int a = in.readByte();
-				switch (opcode) {
-				case OP_GOTO:
-					order(i + ((byte) a));
-					break;
-				case OP_MOVE_RESULT_OBJECT:
-				case OP_MOVE_RESULT:
-				case OP_MOVE_RESULT_WIDE:
-					if (tryEndOffsets.contains(i)) {
-						Label thisLabel = labels.remove(i);
-						Label label = labels.get(i + 1);
-						if (label != null) {
-							for (TryCatchNode tc : tcs) {
-								if (tc.end.equals(thisLabel)) {
-									tc.end = label;
+		try {
+			for (int i = 0; i < instruction_size;) {
+				int opcode = in.readByte() & 0xff;
+				int size = DexOpcodeUtil.getSize(opcode);
+				switch (size) {
+				case 1: {
+					int a = in.readByte();
+					switch (opcode) {
+					case OP_GOTO:
+						order(i + ((byte) a));
+						break;
+					case OP_MOVE_RESULT_OBJECT:
+					case OP_MOVE_RESULT:
+					case OP_MOVE_RESULT_WIDE:
+						if (tryEndOffsets.contains(i)) {
+							Label thisLabel = labels.remove(i);
+							Label label = labels.get(i + 1);
+							if (label != null) {
+								for (TryCatchNode tc : tcs) {
+									if (tc.end.equals(thisLabel)) {
+										tc.end = label;
+									}
 								}
+							} else {
+								labels.put(i + 1, thisLabel);
 							}
-						} else {
-							labels.put(i + 1, thisLabel);
 						}
+						break;
 					}
-					break;
-				}
-				i += 1;
-				break;
-			}
-			case 2: {
-				in.skip(1);
-				short b = in.readShortx();
-				switch (opcode) {
-				case OP_GOTO_16:
-				case OP_IF_EQZ:
-				case OP_IF_NEZ:
-				case OP_IF_LTZ:
-				case OP_IF_GEZ:
-				case OP_IF_GTZ:
-				case OP_IF_LEZ:
-				case OP_IF_EQ:
-				case OP_IF_NE:
-				case OP_IF_LT:
-				case OP_IF_GE:
-				case OP_IF_GT:
-				case OP_IF_LE:
-					order(i + b);
-					break;
-				}
-				i += 2;
-				break;
-			}
-			case 3: {
-				in.skip(5);
-				i += 3;
-				break;
-			}
-			case 0:// OP_NOP
-				int x = in.readByte();
-				switch (x) {
-				case 0: // 0000 //spacer
 					i += 1;
 					break;
-				case 1: // packed-switch-data
-				{
-					int switch_size = in.readShortx(); // switch_size
-					// int b = in.readIntx();// first_case
-					in.skip(4);
-					in.skip(switch_size * 4);
-					i += (1 + 2 + 4) + switch_size * 4;
-					break;
 				}
-				case 2:// sparse-switch-data
-				{
-					int switch_size = in.readShortx();
-					in.skip(switch_size * 8);
-					i += (1 + 2) + switch_size * 8;
+				case 2: {
+					in.skip(1);
+					short b = in.readShortx();
+					switch (opcode) {
+					case OP_GOTO_16:
+					case OP_IF_EQZ:
+					case OP_IF_NEZ:
+					case OP_IF_LTZ:
+					case OP_IF_GEZ:
+					case OP_IF_GTZ:
+					case OP_IF_LEZ:
+					case OP_IF_EQ:
+					case OP_IF_NE:
+					case OP_IF_LT:
+					case OP_IF_GE:
+					case OP_IF_GT:
+					case OP_IF_LE:
+						order(i + b);
+						break;
+					}
+					i += 2;
 					break;
 				}
 				case 3: {
-					int elemWidth = in.readShortx();
-					int initLength = in.readIntx();
-					in.skip(elemWidth * initLength);
-					i += (1 + 2 + 4) + elemWidth * initLength;
+					in.skip(5);
+					i += 3;
 					break;
 				}
-				}
-				break;
-			case -1: {
-				in.skip(1);
-				int offset = in.readIntx();
-				in.push();
-				in.skip((offset - 3) * 2);
-				switch (opcode) {
-				case OP_SPARSE_SWITCH: {
+				case 0:// OP_NOP
+					int x = in.readByte();
+					switch (x) {
+					case 0: // 0000 //spacer
+						i += 1;
+						break;
+					case 1: // packed-switch-data
 					{
-						in.readShortx();
-						int switch_size = in.readShortx();
-						for (int j = 0; j < switch_size; j++) {
-							in.readIntx();
-						}
-						for (int j = 0; j < switch_size; j++) {
-							order(i + in.readIntx());
-						}
-						order(i + 3);
+						int switch_size = in.readShortx(); // switch_size
+						in.skip(4 + switch_size * 4);
+						i += (1 + 2 + 4) + switch_size * 4;
+						break;
 					}
-				}
+					case 2:// sparse-switch-data
+					{
+						int switch_size = in.readShortx();
+						in.skip(switch_size * 8);
+						i += (1 + 2) + switch_size * 8;
+						break;
+					}
+					case 3: {
+						int elemWidth = in.readShortx();
+						int initLength = in.readIntx();
+						in.skip(elemWidth * initLength);
+						i += (1 + 2 + 4) + elemWidth * initLength;
+						break;
+					}
+					}
 					break;
-				case OP_PACKED_SWITCH: {
-					{
-						in.skip(2);
-						int switch_size = in.readShortx();
-						in.skip(4);
-						for (int j = 0; j < switch_size; j++) {
-							int targetOffset = in.readIntx();
-							order(i + targetOffset);
+				case -1: {
+					in.skip(1);
+					int offset = in.readIntx();
+					in.push();
+					try {
+						in.skip((offset - 3) * 2);
+						switch (opcode) {
+						case OP_SPARSE_SWITCH: {
+							{
+								in.skip(2);
+								int switch_size = in.readShortx();
+								in.skip(switch_size * 4);
+								for (int j = 0; j < switch_size; j++) {
+									order(i + in.readIntx());
+								}
+								order(i + 3);
+							}
 						}
-						order(i + 3);
-					}
+							break;
+						case OP_PACKED_SWITCH: {
+							{
+								in.skip(2);
+								int switch_size = in.readShortx();
+								in.skip(4);
+								for (int j = 0; j < switch_size; j++) {
+									int targetOffset = in.readIntx();
+									order(i + targetOffset);
+								}
+								order(i + 3);
+							}
 
+						}
+							break;
+						case OP_FILL_ARRAY_DATA:
+							break;
+						}
+					} finally {
+						in.pop();
+					}
+					i += 3;
 				}
 					break;
-				case OP_FILL_ARRAY_DATA:
+				case 5: {
+					in.skip(9);
+					i += 5;
+				}
 					break;
 				}
-				in.pop();
-				i += 3;
 			}
-				break;
-			case 5: {
-				in.skip(9);
-				i += 5;
-			}
-				break;
-			}
+		} finally {
+			in.pop();
 		}
-		in.pop();
-
 		for (TryCatchNode tc : tcs) {
 			dcv.visitTryCatch(tc.start, tc.end, tc.handler, tc.type);
 		}
@@ -412,15 +419,18 @@ public class DexCodeReader implements DexOpcodes {
 				int skip = 0;
 				int ipp = 3;
 				in.push();
-				switch (in.readByte() & 0xff) {
-				case OP_MOVE_RESULT_OBJECT:
-				case OP_MOVE_RESULT:
-				case OP_MOVE_RESULT_WIDE:
-					methodSaveTo = in.readByte();
-					skip += 2;
-					ipp += 1;
+				try {
+					switch (in.readByte() & 0xff) {
+					case OP_MOVE_RESULT_OBJECT:
+					case OP_MOVE_RESULT:
+					case OP_MOVE_RESULT_WIDE:
+						methodSaveTo = in.readByte();
+						skip += 2;
+						ipp += 1;
+					}
+				} finally {
+					in.pop();
 				}
-				in.pop();
 				in.skip(skip);
 
 				tadoa.visit(opcode, a, b, c, methodSaveTo);
@@ -462,77 +472,80 @@ public class DexCodeReader implements DexOpcodes {
 				int reg = in.readByte();
 				int offset = in.readIntx();
 				in.push();
-				in.skip((offset - 3) * 2);
-				switch (opcode) {
-				case OP_SPARSE_SWITCH: {
-					{
-						in.readShortx();
-						int switch_size = in.readShortx();
-						int cases[] = new int[switch_size];
-						Label label[] = new Label[switch_size];
-						for (int j = 0; j < switch_size; j++) {
-							cases[j] = in.readIntx();
+				try {
+					in.skip((offset - 3) * 2);
+					switch (opcode) {
+					case OP_SPARSE_SWITCH: {
+						{
+							in.readShortx();
+							int switch_size = in.readShortx();
+							int cases[] = new int[switch_size];
+							Label label[] = new Label[switch_size];
+							for (int j = 0; j < switch_size; j++) {
+								cases[j] = in.readIntx();
+							}
+							for (int j = 0; j < switch_size; j++) {
+								label[j] = labels.get(i + in.readIntx());
+							}
+							dcv.visitLookupSwitchInsn(opcode, reg, this.labels.get(i + 3), cases, label);
 						}
-						for (int j = 0; j < switch_size; j++) {
-							label[j] = labels.get(i + in.readIntx());
-						}
-						dcv.visitLookupSwitchInsn(opcode, reg, this.labels.get(i + 3), cases, label);
 					}
-				}
-					break;
-				case OP_PACKED_SWITCH: {
-					{
-						in.readShortx();
-						int switch_size = in.readShortx();
-						int first_case = in.readIntx();
-						int last_case = first_case - 1 + switch_size;
-						Label _labels[] = new Label[switch_size];
-						for (int j = 0; j < switch_size; j++) {
-							int targetOffset = in.readIntx();
-							_labels[j] = this.labels.get(i + targetOffset);
-						}
-						dcv.visitTableSwitchInsn(opcode, reg, first_case, last_case, this.labels.get(i + 3), _labels);
-					}
-
-				}
-					break;
-				case OP_FILL_ARRAY_DATA: {
-					{
-						in.readShortx();
-						int elemWidth = in.readShortx();
-						int initLength = in.readIntx();
-						Object[] values = new Object[initLength];
-
-						switch (elemWidth) {
-						case 1:
-							for (int j = 0; j < initLength; j++) {
-								values[j] = in.readByte();
+						break;
+					case OP_PACKED_SWITCH: {
+						{
+							in.readShortx();
+							int switch_size = in.readShortx();
+							int first_case = in.readIntx();
+							int last_case = first_case - 1 + switch_size;
+							Label _labels[] = new Label[switch_size];
+							for (int j = 0; j < switch_size; j++) {
+								int targetOffset = in.readIntx();
+								_labels[j] = this.labels.get(i + targetOffset);
 							}
-							break;
-						case 2:
-							for (int j = 0; j < initLength; j++) {
-								values[j] = in.readShortx();
-							}
-							break;
-						case 4:
-							for (int j = 0; j < initLength; j++) {
-								values[j] = in.readIntx();
-							}
-							break;
-						case 8:
-							for (int j = 0; j < initLength; j++) {
-								values[j] = in.readLongx();
-							}
-							break;
+							dcv.visitTableSwitchInsn(opcode, reg, first_case, last_case, this.labels.get(i + 3), _labels);
 						}
 
-						dcv.visitFillArrayInsn(opcode, reg, elemWidth, initLength, values);
 					}
+						break;
+					case OP_FILL_ARRAY_DATA: {
+						{
+							in.skip(2);
+							int elemWidth = in.readShortx();
+							int initLength = in.readIntx();
+							Object[] values = new Object[initLength];
 
+							switch (elemWidth) {
+							case 1:
+								for (int j = 0; j < initLength; j++) {
+									values[j] = in.readByte();
+								}
+								break;
+							case 2:
+								for (int j = 0; j < initLength; j++) {
+									values[j] = in.readShortx();
+								}
+								break;
+							case 4:
+								for (int j = 0; j < initLength; j++) {
+									values[j] = in.readIntx();
+								}
+								break;
+							case 8:
+								for (int j = 0; j < initLength; j++) {
+									values[j] = in.readLongx();
+								}
+								break;
+							}
+
+							dcv.visitFillArrayInsn(opcode, reg, elemWidth, initLength, values);
+						}
+
+					}
+						break;
+					}
+				} finally {
+					in.pop();
 				}
-					break;
-				}
-				in.pop();
 				i += 3;
 			}
 				break;

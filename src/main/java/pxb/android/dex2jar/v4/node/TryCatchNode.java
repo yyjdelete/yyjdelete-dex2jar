@@ -18,8 +18,10 @@ package pxb.android.dex2jar.v4.node;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 
 /**
  * @author Panxiaobo [pxb1988@gmail.com]
@@ -27,7 +29,7 @@ import org.objectweb.asm.Label;
  */
 public class TryCatchNode {
 	public Label start, end;
-	public List<Map.Entry<String,Label>> handlers = new ArrayList();
+	public List<Map.Entry<String, Label>> handlers = new ArrayList<Entry<String, Label>>();
 
 	public int hashCode() {
 		return start.hashCode() * 32 + end.hashCode();
@@ -42,6 +44,14 @@ public class TryCatchNode {
 	public boolean equals(Object obj) {
 		TryCatchNode t = (TryCatchNode) obj;
 		return start.equals(t.start) && end.equals(t.end);
+	}
+
+	/**
+	 * @param mv
+	 */
+	public void accept(MethodVisitor mv) {
+		for (Entry<String, Label> e : handlers)
+			mv.visitTryCatchBlock(start, end, e.getValue(), e.getKey());
 	}
 
 }
