@@ -21,6 +21,8 @@ import static pxb.android.dex2jar.reader.Constant.xf;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pxb.android.dex2jar.DataIn;
 import pxb.android.dex2jar.Dex;
@@ -53,7 +55,7 @@ public class DexAnnotationReader {
 
 	/**
 	 * @param dex
-	 *          dex文件
+	 *            dex文件
 	 */
 	public DexAnnotationReader(Dex dex) {
 		super();
@@ -64,7 +66,7 @@ public class DexAnnotationReader {
 	 * 处理
 	 * 
 	 * @param in
-	 *          输入流
+	 *            输入流
 	 * @param daa
 	 */
 	public void accept(DataIn in, AnnotationAble daa) {
@@ -72,22 +74,27 @@ public class DexAnnotationReader {
 		for (int j = 0; j < size; j++) {
 			int field_annotation_offset = in.readIntx();
 			in.pushMove(field_annotation_offset);
-			int visible_i = in.readByte();
-			int type_idx = (int) in.readUnsignedLeb128();
-			String type = dex.getType(type_idx);
-			AnnotationVisitor dav = daa.visitAnnotation(type, visible_i);
-			if (dav != null) {
-				int sizex = (int) in.readUnsignedLeb128();
-				for (int k = 0; k < sizex; k++) {
-					int name_idx = (int) in.readUnsignedLeb128();
-					String name = dex.getString(name_idx);
-					acceptAnnotation(dex, in, name, dav);
+			try {
+				int visible_i = in.readByte();
+				int type_idx = (int) in.readUnsignedLeb128();
+				String type = dex.getType(type_idx);
+				AnnotationVisitor dav = daa.visitAnnotation(type, visible_i);
+				if (dav != null) {
+					int sizex = (int) in.readUnsignedLeb128();
+					for (int k = 0; k < sizex; k++) {
+						int name_idx = (int) in.readUnsignedLeb128();
+						String name = dex.getString(name_idx);
+						acceptAnnotation(dex, in, name, dav);
+					}
+					dav.visitEnd();
 				}
-				dav.visitEnd();
+			} finally {
+				in.pop();
 			}
-			in.pop();
 		}
 	}
+
+	public static final Logger log = LoggerFactory.getLogger(DexAnnotationReader.class);
 
 	/**
 	 * 
@@ -142,9 +149,11 @@ public class DexAnnotationReader {
 		}
 			break;
 		case VALUE_METHOD: {
+			log.warn("find Method Value in Annotation,Ignored");
 			int method_id = (int) x3(in, b);
 			value = dex.getMethod(method_id);
-			break;
+			return;
+			// break;
 		}
 		case VALUE_FIELD: {
 			int field_id = (int) x3(in, b);

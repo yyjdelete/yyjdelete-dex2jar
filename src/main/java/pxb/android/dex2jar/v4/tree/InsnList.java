@@ -18,6 +18,10 @@ package pxb.android.dex2jar.v4.tree;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+
 /**
  * @author Panxiaobo [pxb1988@gmail.com]
  * 
@@ -47,6 +51,18 @@ public class InsnList {
 
 		}
 		return sb.toString();
+	}
+
+	/**
+	 * @param mv
+	 */
+	public void accept(MethodVisitor mv) {
+		for (Insn insn : insns) {
+			insn.value.accept(Type.INT_TYPE, mv);
+			if (insn.reg >= 0) {
+				mv.visitVarInsn(Opcodes.ISTORE, insn.reg);
+			}
+		}
 	}
 
 }

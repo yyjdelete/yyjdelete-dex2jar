@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
@@ -112,7 +113,6 @@ public class DexCodeNode implements DexCodeVisitor, Opcodes, DexOpcodes {
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitEnd()
 	 */
 	public void visitEnd() {
-		System.out.println(insnList);
 	}
 
 	/*
@@ -666,11 +666,13 @@ public class DexCodeNode implements DexCodeVisitor, Opcodes, DexOpcodes {
 	}
 
 	/**
-	 * @param dcv
+	 * @param mv
 	 */
-	public void accept(DexCodeVisitor dcv) {
-		// TODO Auto-generated method stub
-
+	public void accept(MethodVisitor mv) {
+		for (TryCatchNode tr : tryCatches) {
+			tr.accept(mv);
+		}
+		insnList.accept(mv);
 	}
 
 }

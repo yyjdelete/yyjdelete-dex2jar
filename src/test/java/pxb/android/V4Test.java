@@ -9,20 +9,18 @@ import java.util.Iterator;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import pxb.android.dex2jar.Method;
-import pxb.android.dex2jar.reader.DexFileReader;
-import pxb.android.dex2jar.v4.node.DexCodeNode;
-import pxb.android.dex2jar.v4.optimize.A;
-import pxb.android.dex2jar.visitors.DexCodeVisitor;
-import pxb.android.dex2jar.visitors.DexMethodVisitor;
-import pxb.android.dex2jar.visitors.EmptyVisitor;
+import pxb.android.dex2jar.v4.Main;
 
 /**
  * @author Panxiaobo
  * 
  */
 public class V4Test {
+	static final Logger log = LoggerFactory.getLogger(V4Test.class);
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void test() throws IOException {
@@ -30,29 +28,8 @@ public class V4Test {
 		Iterator it = FileUtils.iterateFiles(file, new String[] { "dex" }, false);
 		while (it.hasNext()) {
 			File f = (File) it.next();
-			byte[] data = FileUtils.readFileToByteArray(f);
-			DexFileReader reader = new DexFileReader(data);
-			reader.accept(new EmptyVisitor() {
-				Method method;
-
-				@Override
-				public DexMethodVisitor visitMethod(Method method) {
-					this.method = method;
-					return super.visitMethod(method);
-				}
-
-				@Override
-				public DexCodeVisitor visitCode() {
-					return new DexCodeNode() {
-						public void visitEnd() {
-							super.visitEnd();
-							new A().a(this);
-//							new Optimizer(method, this.insnList).optimize();
-						}
-					};
-				}
-
-			});
+			log.info("dex2jar file {}", f);
+			Main.doFile(f);
 		}
 	}
 }

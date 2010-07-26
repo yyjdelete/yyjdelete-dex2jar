@@ -19,13 +19,11 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
-import pxb.android.dex2jar.v4.tree.Fn.FnType;
-
 /**
  * @author Panxiaobo [pxb1988@gmail.com]
  * 
  */
-public class JumpFn extends Fn {
+public class JumpFn extends BranchFn {
 
 	public Label success;
 	Value a;
@@ -119,6 +117,16 @@ public class JumpFn extends Fn {
 	public Value[] inValues() {
 		return asList(a, b);
 	}
+
+	/* (non-Javadoc)
+	 * @see pxb.android.dex2jar.v4.tree.BranchFn#getBranchLabels()
+	 */
+	@Override
+	public Label[] getBranchLabels() {
+		return new Label[]{success};
+	}
+
+
 
 	// public void swap() {
 	// switch (opcode) {

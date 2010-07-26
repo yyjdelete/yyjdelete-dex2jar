@@ -16,6 +16,9 @@
 package pxb.android.dex2jar.v4.node;
 
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.MethodAdapter;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.tree.MethodNode;
 
 import pxb.android.dex2jar.Method;
 import pxb.android.dex2jar.visitors.AnnotationAble;
@@ -30,6 +33,11 @@ public class DexMethodNode implements DexMethodVisitor {
 
 	public Method method;
 	public DexCodeNode codeNode;
+	MethodNode methodNode = new MethodNode();
+
+	public DexMethodNode(Method method) {
+		this.method = method;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -41,17 +49,17 @@ public class DexMethodNode implements DexMethodVisitor {
 		return codeNode;
 	}
 
-	public void accept(DexMethodVisitor dmv) {
-		// dmv.visitAnnotation(name, visitable);
-		// dmv.visitParamesterAnnotation(index);
-
-		if (codeNode != null) {
-			DexCodeVisitor dcv = dmv.visitCode();
-			if (dcv != null) {
-				codeNode.accept(dcv);
+	public void accept(MethodVisitor mv) {
+		methodNode.accept(new MethodAdapter(mv) {
+			@Override
+			public void visitEnd() {
+				// ignored
 			}
+		});
+		if (codeNode != null) {
+			codeNode.accept(mv);
 		}
-		dmv.visitEnd();
+		mv.visitEnd();
 	}
 
 	/*
@@ -69,9 +77,12 @@ public class DexMethodNode implements DexMethodVisitor {
 	 * 
 	 * @see pxb.android.dex2jar.visitors.DexMethodVisitor#visitParamesterAnnotation(int)
 	 */
-	public AnnotationAble visitParamesterAnnotation(int index) {
-		// TODO Auto-generated method stub
-		return null;
+	public AnnotationAble visitParamesterAnnotation(final int index) {
+		return new AnnotationAble() {
+			public AnnotationVisitor visitAnnotation(String name, int visitable) {
+				return methodNode.visitParameterAnnotation(index, name, visitable == 1);
+			}
+		};
 	}
 
 	/*
@@ -80,7 +91,6 @@ public class DexMethodNode implements DexMethodVisitor {
 	 * @see pxb.android.dex2jar.visitors.AnnotationAble#visitAnnotation(java.lang.String, int)
 	 */
 	public AnnotationVisitor visitAnnotation(String name, int visitable) {
-		// TODO Auto-generated method stub
-		return null;
+		return methodNode.visitAnnotation(name, visitable != 0);
 	}
 }

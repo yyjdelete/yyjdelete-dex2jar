@@ -53,18 +53,22 @@ public class FillArrayFn extends Fn {
 		switch (elemWidth) {
 		case 1:
 			op = Opcodes.BASTORE;
+			arrayValue.accept(Type.getType("[B"), mv);
 			break;
 		case 2:
 			op = Opcodes.SASTORE;
+			arrayValue.accept(Type.getType("[S"), mv);
 			break;
 		case 4:
 			op = Opcodes.IASTORE;
+			arrayValue.accept(Type.getType("[I"), mv);
 			break;
 		case 8:
 			op = Opcodes.LASTORE;
+			arrayValue.accept(Type.getType("[J"), mv);
 			break;
 		}
-		arrayValue.accept(null, mv);
+		
 		for (int i = 0; i < values.length; i++) {
 			mv.visitInsn(Opcodes.DUP);
 			mv.visitLdcInsn(i);

@@ -21,9 +21,27 @@ import org.objectweb.asm.Label;
  * @author Panxiaobo [pxb1988@gmail.com]
  * 
  */
-public abstract class SwitchFn extends Fn {
+public abstract class SwitchFn extends BranchFn {
 	public Label[] labels;
 	public Label default_label;
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see pxb.android.dex2jar.v4.tree.BranchFn#getBranchLabels()
+	 */
+	@Override
+	public Label[] getBranchLabels() {
+		return labels;
+	}
+
+//	/* (non-Javadoc)
+//	 * @see pxb.android.dex2jar.v4.tree.BranchFn#getDefaultLabel()
+//	 */
+//	@Override
+//	public Label getDefaultLabel() {
+//		return default_label;
+//	}
 
 	/*
 	 * (non-Javadoc)

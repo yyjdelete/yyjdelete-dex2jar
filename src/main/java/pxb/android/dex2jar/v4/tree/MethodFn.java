@@ -72,19 +72,16 @@ public class MethodFn extends Fn {
 			break;
 		case OP_INVOKE_SUPER:
 		case OP_INVOKE_DIRECT:
-			if (invorkSuper) {
-				for (int j = 0; j < types.length; j++) {
-					args[j].accept(Type.getType(types[j]), mv);
-				}
-				mv.visitMethodInsn(INVOKESPECIAL, method.getOwner(), method.getName(), method.getType().getDesc());
-			} else {
-				mv.visitTypeInsn(NEW, types[0]);
+			if (!invorkSuper) {
+				mv.visitTypeInsn(NEW, method.getOwner());
 				mv.visitInsn(DUP);
-				for (int j = 1; j < types.length; j++) {
-					args[j].accept(Type.getType(types[j]), mv);
-				}
-				mv.visitMethodInsn(INVOKESPECIAL, method.getOwner(), method.getName(), method.getType().getDesc());
 			}
+
+			for (int j = 0; j < types.length; j++) {
+				args[j].accept(Type.getType(types[j]), mv);
+			}
+			mv.visitMethodInsn(INVOKESPECIAL, method.getOwner(), method.getName(), method.getType().getDesc());
+
 			break;
 		}
 	}

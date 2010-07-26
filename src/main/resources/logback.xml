@@ -29,7 +29,7 @@
 	<logger name="pxb.android.dex2jar.dump" level="INFO">
 		<!--		<appender-ref ref="logfile" />-->
 	</logger>
-	<logger name="pxb.android.dex2jar.v3" level="ERROR" />
+	<logger name="pxb.android.dex2jar.v4" level="INFO" />
 	<logger name="pxb.android.dex2jar.reader" level="INFO" />
 	<logger name="pxb.android.dex2jar.optimize" level="DEBUG" />
 

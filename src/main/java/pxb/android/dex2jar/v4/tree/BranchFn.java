@@ -13,29 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pxb.android.dex2jar.v4.optimize.b;
+package pxb.android.dex2jar.v4.tree;
 
-import pxb.android.dex2jar.v4.tree.JumpFn;
+import org.objectweb.asm.Label;
 
 /**
  * @author Panxiaobo [pxb1988@gmail.com]
  * 
  */
-public class JumpBlock extends Block {
+public abstract class BranchFn extends Fn {
 
-	public Block success;
-	public JumpFn fn;
-
-	public String toString() {
-		StringBuilder sb = new StringBuilder(super.toString());
-		sb.append(fn).append("\n");
-		if (success != null) {
-			sb.append("success: ").append(success.id);
-		} else if (fn != null) {
-			sb.append("success: ").append(fn.success);
-		}
-
-		return sb.toString();
-	}
+	public abstract Label[] getBranchLabels();
+	// public abstract Label getDefaultLabel();
 
 }
