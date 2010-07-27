@@ -31,66 +31,70 @@ import pxb.android.dex2jar.visitors.DexMethodVisitor;
  */
 public class DexMethodNode implements DexMethodVisitor {
 
-	public Method method;
-	public DexCodeNode codeNode;
-	MethodNode methodNode = new MethodNode();
+    public Method method;
+    public DexCodeNode codeNode;
+    MethodNode methodNode = new MethodNode();
 
-	public DexMethodNode(Method method) {
-		this.method = method;
-	}
+    public DexMethodNode(Method method) {
+        this.method = method;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see pxb.android.dex2jar.visitors.DexMethodVisitor#visitCode()
-	 */
-	public DexCodeVisitor visitCode() {
-		codeNode = new DexCodeNode();
-		return codeNode;
-	}
+    /*
+     * (non-Javadoc)
+     *
+     * @see pxb.android.dex2jar.visitors.DexMethodVisitor#visitCode()
+     */
+    public DexCodeVisitor visitCode() {
+        codeNode = new DexCodeNode();
+        return codeNode;
+    }
 
-	public void accept(MethodVisitor mv) {
-		methodNode.accept(new MethodAdapter(mv) {
-			@Override
-			public void visitEnd() {
-				// ignored
-			}
-		});
-		if (codeNode != null) {
-			codeNode.accept(mv);
-		}
-		mv.visitEnd();
-	}
+    public void accept(MethodVisitor mv) {
+        methodNode.accept(new MethodAdapter(mv) {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see pxb.android.dex2jar.visitors.DexMethodVisitor#visitEnd()
-	 */
-	public void visitEnd() {
-		// TODO Auto-generated method stub
+            @Override
+            public void visitEnd() {
+                // ignored
+            }
+        });
+        if (codeNode != null) {
+            codeNode.accept(mv);
+        }
+        mv.visitEnd();
+    }
 
-	}
+    /*
+     * (non-Javadoc)
+     *
+     * @see pxb.android.dex2jar.visitors.DexMethodVisitor#visitEnd()
+     */
+    @Override
+    public void visitEnd() {
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see pxb.android.dex2jar.visitors.DexMethodVisitor#visitParamesterAnnotation(int)
-	 */
-	public AnnotationAble visitParamesterAnnotation(final int index) {
-		return new AnnotationAble() {
-			public AnnotationVisitor visitAnnotation(String name, int visitable) {
-				return methodNode.visitParameterAnnotation(index, name, visitable == 1);
-			}
-		};
-	}
+    /*
+     * (non-Javadoc)
+     *
+     * @see pxb.android.dex2jar.visitors.DexMethodVisitor#visitParamesterAnnotation(int)
+     */
+    @Override
+    public AnnotationAble visitParamesterAnnotation(final int index) {
+        return new AnnotationAble() {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see pxb.android.dex2jar.visitors.AnnotationAble#visitAnnotation(java.lang.String, int)
-	 */
-	public AnnotationVisitor visitAnnotation(String name, int visitable) {
-		return methodNode.visitAnnotation(name, visitable != 0);
-	}
+            @Override
+            public AnnotationVisitor visitAnnotation(String name, int visitable) {
+                return methodNode.visitParameterAnnotation(index, name, visitable == 1);
+            }
+        };
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see pxb.android.dex2jar.visitors.AnnotationAble#visitAnnotation(java.lang.String, int)
+     */
+    @Override
+    public AnnotationVisitor visitAnnotation(String name, int visitable) {
+        return methodNode.visitAnnotation(name, visitable != 0);
+    }
 }

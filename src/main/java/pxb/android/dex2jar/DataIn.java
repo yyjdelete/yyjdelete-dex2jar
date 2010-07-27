@@ -23,40 +23,75 @@ package pxb.android.dex2jar;
  */
 public interface DataIn {
 
-	public int readIntx();
+    /**
+     * 读取一个int,4位
+     * @return
+     */
+    public int readIntx();
 
-	public long readLongx();
+    /**
+     * 读取一个long,8位
+     * @return
+     */
+    public long readLongx();
 
-	public short readShortx();
+    /**
+     * 读取一个short,2位
+     * @return
+     */
+    public short readShortx();
 
-	public void move(int offset);
+    /**
+     * 移动当前指针到偏移量
+     * @param offset 偏移量
+     */
+    public void move(int offset);
 
-	public void pushMove(int offset);
+    /**
+     * 将当前指针压栈，并移动到偏移量，等价于
+     * push();
+     * move(offset);
+     * @param offset
+     */
+    public void pushMove(int offset);
 
-	public void push();
+    /**
+     * 将当前指针压栈
+     */
+    public void push();
 
-	public void pop();
+    /**
+     * 从栈中弹出指针位置，并移动到该位置
+     */
+    public void pop();
 
-	byte[] readBytes(int size);
+    /**
+     * 读取字节数组
+     * @param size 当前位置开始的字节长度
+     * @return
+     */
+    byte[] readBytes(int size);
 
-	long readUnsignedLeb128();
+    long readUnsignedLeb128();
 
-	long readSignedLeb128();
+    long readSignedLeb128();
 
-	/**
-	 * @return
-	 */
-	public int readUnsignedByte();
+    /**
+     * 读取一个无符号Byte,1位
+     * @return
+     */
+    public int readUnsignedByte();
 
-	public boolean needPadding();
+    public boolean needPadding();
 
-	/**
-	 * 
-	 */
-	public int readByte();
+    /**
+     *读取一个Byte,1位
+     */
+    public int readByte();
 
-	/**
-	 * @param i
-	 */
-	public void skip(int bytes);
+    /**
+     * 跳过字节
+     * @param i 字节数
+     */
+    public void skip(int bytes);
 }

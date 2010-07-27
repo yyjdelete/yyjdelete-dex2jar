@@ -17,6 +17,7 @@ package pxb.android.dex2jar.v4;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -33,75 +34,92 @@ import pxb.android.dex2jar.visitors.DexMethodVisitor;
  */
 public class V4ClassAdapter implements DexClassVisitor {
 
-	/**
-	 * @param cv
-	 * @param accessFlags
-	 * @param className
-	 * @param superClass
-	 * @param interfaceNames
-	 */
-	public V4ClassAdapter(ClassVisitor cv, int accessFlags, String className, String superClass, String[] interfaceNames) {
-		this.cv = cv;
-		cv.visit(Opcodes.V1_6, accessFlags, className, null, superClass, null);
-	}
+    /**
+     * @param cv
+     * @param accessFlags
+     * @param className
+     * @param superClass
+     * @param interfaceNames
+     */
+    public V4ClassAdapter(ClassVisitor cv, int accessFlags, String className, String superClass, String[] interfaceNames) {
+        this.cv = cv;
+        cv.visit(Opcodes.V1_6, accessFlags, className, null, superClass, null);
+    }
+    private ClassVisitor cv;
 
-	ClassVisitor cv;
+    /*
+     * (non-Javadoc)
+     *
+     * @see pxb.android.dex2jar.visitors.DexClassVisitor#visitEnd()
+     */
+    @Override
+    public void visitEnd() {
+        cv.visitEnd();
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see pxb.android.dex2jar.visitors.DexClassVisitor#visitEnd()
-	 */
-	public void visitEnd() {
-		cv.visitEnd();
-	}
+    /*
+     * (non-Javadoc)
+     *
+     * @see pxb.android.dex2jar.visitors.DexClassVisitor#visitField(pxb.android.dex2jar.Field, java.lang.Object)
+     */
+    @Override
+    public DexFieldVisitor visitField(Field field, Object value) {
+        final FieldVisitor fv = cv.visitField(field.getAccessFlags(), field.getName(), field.getType(), null, value);
+        if (fv != null) {
+            return new DexFieldVisitor() {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see pxb.android.dex2jar.visitors.DexClassVisitor#visitField(pxb.android.dex2jar.Field, java.lang.Object)
-	 */
-	public DexFieldVisitor visitField(Field field, Object value) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+                @Override
+                public void visitEnd() {
+                    fv.visitEnd();
+                }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see pxb.android.dex2jar.visitors.DexClassVisitor#visitMethod(pxb.android.dex2jar.Method)
-	 */
-	public DexMethodVisitor visitMethod(Method method) {
-		final MethodVisitor mv = cv.visitMethod(method.getAccessFlags(), method.getName(), method.getType().getDesc(), null, null);
-		if (mv != null) {
-			return new DexMethodNode(method) {
-				@Override
-				public void visitEnd() {
-					super.visitEnd();
-					this.accept(mv);
-				}
-			};
-		}
-		return null;
-	}
+                @Override
+                public AnnotationVisitor visitAnnotation(String name, int visitable) {
+                    return fv.visitAnnotation(name, visitable != 0);
+                }
+            };
+        }
+        return null;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see pxb.android.dex2jar.visitors.DexClassVisitor#visitSource(java.lang.String)
-	 */
-	public void visitSource(String file) {
-		// TODO Auto-generated method stub
+    /*
+     * (non-Javadoc)
+     *
+     * @see pxb.android.dex2jar.visitors.DexClassVisitor#visitMethod(pxb.android.dex2jar.Method)
+     */
+    @Override
+    public DexMethodVisitor visitMethod(Method method) {
+        final MethodVisitor mv = cv.visitMethod(method.getAccessFlags(), method.getName(), method.getType().getDesc(), null, null);
+        if (mv != null) {
+            return new DexMethodNode(method) {
 
-	}
+                @Override
+                public void visitEnd() {
+                    super.visitEnd();
+                    this.accept(mv);
+                }
+            };
+        }
+        return null;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see pxb.android.dex2jar.visitors.AnnotationAble#visitAnnotation(java.lang.String, int)
-	 */
-	public AnnotationVisitor visitAnnotation(String name, int visitable) {
-		return cv.visitAnnotation(name, visitable != 0);
-	}
+    /*
+     * (non-Javadoc)
+     *
+     * @see pxb.android.dex2jar.visitors.DexClassVisitor#visitSource(java.lang.String)
+     */
+    @Override
+    public void visitSource(String file) {
+        cv.visitSource(file, null);
+    }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see pxb.android.dex2jar.visitors.AnnotationAble#visitAnnotation(java.lang.String, int)
+     */
+    @Override
+    public AnnotationVisitor visitAnnotation(String name, int visitable) {
+        return cv.visitAnnotation(name, visitable != 0);
+    }
 }
