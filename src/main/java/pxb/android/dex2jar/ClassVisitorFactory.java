@@ -18,9 +18,16 @@ package pxb.android.dex2jar;
 import org.objectweb.asm.ClassVisitor;
 
 /**
+ * 创建ClassVisitor的工厂
  * @author Panxiaobo [pxb1988@126.com]
  * @version $Id$
  */
 public interface ClassVisitorFactory {
-	public ClassVisitor create(String className);
+
+    /**
+     * 创建一个ClassVisitor,返回null时不处理该类
+     * @param className 类名
+     * @return 可能为null
+     */
+    public ClassVisitor create(String className);
 }
