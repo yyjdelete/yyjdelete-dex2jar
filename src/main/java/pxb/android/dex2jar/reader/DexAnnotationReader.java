@@ -78,7 +78,7 @@ public class DexAnnotationReader {
 				int visible_i = in.readByte();
 				int type_idx = (int) in.readUnsignedLeb128();
 				String type = dex.getType(type_idx);
-				AnnotationVisitor dav = daa.visitAnnotation(type, visible_i);
+				AnnotationVisitor dav = daa.visitAnnotation(type, visible_i == 1);
 				if (dav != null) {
 					int sizex = (int) in.readUnsignedLeb128();
 					for (int k = 0; k < sizex; k++) {
