@@ -39,9 +39,9 @@ public class DexClassAdapter implements DexClassVisitor {
 	 * (non-Javadoc)
 	 * 
 	 * @see pxb.android.dex2jar.visitors.DexClassVisitor#visitAnnotation(java.lang
-	 * .String, int)
+	 * .String, boolean)
 	 */
-	public AnnotationVisitor visitAnnotation(String name, int visitable) {
+	public AnnotationVisitor visitAnnotation(String name, boolean visitable) {
 		return dcv.visitAnnotation(name, visitable);
 	}
 

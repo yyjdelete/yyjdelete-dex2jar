@@ -22,5 +22,5 @@ import org.objectweb.asm.AnnotationVisitor;
  *
  */
 public interface AnnotationAble {
-	public AnnotationVisitor visitAnnotation(String name, int visitable);
+	public AnnotationVisitor visitAnnotation(String name, boolean visitable);
 }

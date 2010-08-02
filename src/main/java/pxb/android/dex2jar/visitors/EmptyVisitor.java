@@ -50,9 +50,9 @@ public class EmptyVisitor implements DexFileVisitor, DexClassVisitor, DexMethodV
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see pxb.android.dex2jar.visitors.DexClassVisitor#visitAnnotation(java.lang .String, int)
+	 * @see pxb.android.dex2jar.visitors.DexClassVisitor#visitAnnotation(java.lang .String, boolean)
 	 */
-	public AnnotationVisitor visitAnnotation(String name, int visitable) {
+	public AnnotationVisitor visitAnnotation(String name, boolean visible) {
 
 		return this;
 	}

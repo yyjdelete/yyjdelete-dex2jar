@@ -35,10 +35,10 @@ public class DexMethodAdapter implements DexMethodVisitor {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see pxb.android.dex2jar.visitors.DexMethodVisitor#visitAnnotation(java.lang.String, int)
+	 * @see pxb.android.dex2jar.visitors.DexMethodVisitor#visitAnnotation(java.lang.String, boolean)
 	 */
-	public AnnotationVisitor visitAnnotation(String name, int visitable) {
-		return mv.visitAnnotation(name, visitable);
+	public AnnotationVisitor visitAnnotation(String name, boolean visible) {
+		return mv.visitAnnotation(name, visible);
 	}
 
 	/*

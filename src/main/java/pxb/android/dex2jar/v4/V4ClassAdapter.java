@@ -74,8 +74,8 @@ public class V4ClassAdapter implements DexClassVisitor {
                 }
 
                 @Override
-                public AnnotationVisitor visitAnnotation(String name, int visitable) {
-                    return fv.visitAnnotation(name, visitable != 0);
+                public AnnotationVisitor visitAnnotation(String name, boolean visible) {
+                    return fv.visitAnnotation(name, visible);
                 }
             };
         }
@@ -116,10 +116,10 @@ public class V4ClassAdapter implements DexClassVisitor {
     /*
      * (non-Javadoc)
      *
-     * @see pxb.android.dex2jar.visitors.AnnotationAble#visitAnnotation(java.lang.String, int)
+     * @see pxb.android.dex2jar.visitors.AnnotationAble#visitAnnotation(java.lang.String, boolean)
      */
     @Override
-    public AnnotationVisitor visitAnnotation(String name, int visitable) {
-        return cv.visitAnnotation(name, visitable != 0);
+    public AnnotationVisitor visitAnnotation(String name, boolean visible) {
+        return cv.visitAnnotation(name, visible);
     }
 }

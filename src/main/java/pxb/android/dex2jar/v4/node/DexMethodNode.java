@@ -82,8 +82,8 @@ public class DexMethodNode implements DexMethodVisitor {
         return new AnnotationAble() {
 
             @Override
-            public AnnotationVisitor visitAnnotation(String name, int visitable) {
-                return methodNode.visitParameterAnnotation(index, name, visitable == 1);
+            public AnnotationVisitor visitAnnotation(String name, boolean visible) {
+                return methodNode.visitParameterAnnotation(index, name, visible);
             }
         };
     }
@@ -94,7 +94,7 @@ public class DexMethodNode implements DexMethodVisitor {
      * @see pxb.android.dex2jar.visitors.AnnotationAble#visitAnnotation(java.lang.String, int)
      */
     @Override
-    public AnnotationVisitor visitAnnotation(String name, int visitable) {
-        return methodNode.visitAnnotation(name, visitable != 0);
+    public AnnotationVisitor visitAnnotation(String name, boolean visible) {
+        return methodNode.visitAnnotation(name, visible);
     }
 }
