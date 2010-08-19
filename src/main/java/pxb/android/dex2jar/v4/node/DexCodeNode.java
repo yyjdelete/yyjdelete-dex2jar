@@ -561,13 +561,14 @@ public class DexCodeNode implements DexCodeVisitor, Opcodes, DexOpcodes {
 
 	protected Map<Label, Type> handlers = new HashMap<Label, Type>();
 
-	public List<TryCatchNode> tryCatches = new ArrayList();
+	public List<TryCatchNode> tryCatches = new ArrayList<TryCatchNode>();
 
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitTryCatch(int, int, int, java.lang.String)
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void visitTryCatch(Label start, Label end, Label handler, String type) {
 		// mv.visitTryCatchBlock(start, end, handler, type);
 		if (type == null) {
