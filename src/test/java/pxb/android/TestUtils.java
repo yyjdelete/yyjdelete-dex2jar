@@ -26,7 +26,7 @@ import java.net.URLClassLoader;
  */
 public abstract class TestUtils {
 
-	public static File dex(String file) throws Exception {
+	public static File dex(File file, File distFile) throws Exception {
 		String dxJar = "src/test/resources/dx.jar";
 		File dxFile = new File(dxJar);
 		if (!dxFile.exists()) {
@@ -36,10 +36,15 @@ public abstract class TestUtils {
 		Class<?> c = cl.loadClass("com.android.dx.command.Main");
 		Method m = c.getMethod("main", String[].class);
 
-		File tempJar = File.createTempFile("dex", ".dex");
+		if (distFile == null)
+			distFile = File.createTempFile("dex", ".dex");
 
-		String[] args = new String[] { "--dex", "--no-strict", "--output=" + tempJar.getCanonicalPath(), new File(file).getCanonicalPath() };
+		String[] args = new String[] { "--dex", "--no-strict", "--output=" + distFile.getCanonicalPath(), file.getCanonicalPath() };
 		m.invoke(null, new Object[] { args });
-		return tempJar;
+		return distFile;
+	}
+
+	public static File dex(File file) throws Exception {
+		return dex(file, null);
 	}
 }
