@@ -16,13 +16,9 @@
 package pxb.android;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Properties;
-
-import org.apache.commons.io.FileUtils;
 
 /**
  * @author Panxiaobo
@@ -31,13 +27,7 @@ import org.apache.commons.io.FileUtils;
 public abstract class TestUtils {
 
 	public static File dex(String file) throws Exception {
-
-		Properties ps = new Properties();
-		String dxJar = null;
-		FileInputStream fis = FileUtils.openInputStream(new File("src/test/resources/pxb/android/dx.properties"));
-		ps.load(fis);
-
-		dxJar = ps.getProperty("dx.lib.jar");
+		String dxJar = "src/test/resources/dx.jar";
 		File dxFile = new File(dxJar);
 		if (!dxFile.exists()) {
 			throw new RuntimeException("dx.jar文件不存在");

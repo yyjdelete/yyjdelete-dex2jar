@@ -33,7 +33,7 @@ import pxb.android.dex2jar.v4.Main;
 public class V4Test {
 	static final Logger log = LoggerFactory.getLogger(V4Test.class);
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void test() throws IOException {
 		File file = new File("target/test-classes/dexes");

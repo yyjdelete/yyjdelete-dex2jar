@@ -94,4 +94,12 @@ public interface DataIn {
      * @param i 字节数
      */
     public void skip(int bytes);
+
+	/**
+	 * 获取当前位置
+	 * 
+	 * @return
+	 */
+	public int getCurrentPosition();
+
 }

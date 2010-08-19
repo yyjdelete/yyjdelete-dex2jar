@@ -32,6 +32,7 @@ import pxb.android.dex2jar.dump.Dump;
  */
 public class DumpTest {
 	static final Logger log = LoggerFactory.getLogger(DumpTest.class);
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void test() throws IOException {
 		File file = new File("target/test-classes/dexes");
