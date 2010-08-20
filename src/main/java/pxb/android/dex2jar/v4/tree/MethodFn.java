@@ -58,6 +58,7 @@ public class MethodFn extends Fn {
 			mv.visitMethodInsn(INVOKESTATIC, method.getOwner(), method.getName(), method.getType().getDesc());
 		}
 			break;
+		case OP_INVOKE_SUPER:
 		case OP_INVOKE_VIRTUAL:
 			for (int j = 0; j < types.length; j++) {
 				args[j].accept(Type.getType(types[j]), mv);
@@ -70,7 +71,6 @@ public class MethodFn extends Fn {
 			}
 			mv.visitMethodInsn(INVOKEINTERFACE, method.getOwner(), method.getName(), method.getType().getDesc());
 			break;
-		case OP_INVOKE_SUPER:
 		case OP_INVOKE_DIRECT:
 			if (!invorkSuper) {
 				mv.visitTypeInsn(NEW, method.getOwner());
