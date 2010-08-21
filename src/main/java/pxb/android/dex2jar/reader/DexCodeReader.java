@@ -334,7 +334,8 @@ public class DexCodeReader implements DexOpcodes {
 		tryEndOffsets = null;
 
 		// 处理指令
-		for (int baseOffset = in.getCurrentPosition(), currentOffset = 0; currentOffset < instruction_size * 2; currentOffset = in.getCurrentPosition()
+		int currentOffset = 0;
+		for (int baseOffset = in.getCurrentPosition(); currentOffset < instruction_size * 2; currentOffset = in.getCurrentPosition()
 				- baseOffset) {
 			int opcode = in.readByte() & 0xff;
 			if (labels.containsKey(currentOffset))
@@ -551,6 +552,9 @@ public class DexCodeReader implements DexOpcodes {
 				throw new RuntimeException(String.format("Not support Opcode :0x%02x=%s @[0x%04x]", opcode, DexOpcodeDump.dump(opcode), currentOffset));
 			}
 		}
+		//结尾可能有个Label
+		if (labels.containsKey(currentOffset))
+			dcv.visitLabel(labels.get(currentOffset));
 		dcv.visitEnd();
 	}
 
