@@ -34,6 +34,7 @@ import pxb.android.dex2jar.DexOpcodeDump;
 import pxb.android.dex2jar.DexOpcodeUtil;
 import pxb.android.dex2jar.DexOpcodes;
 import pxb.android.dex2jar.Method;
+import pxb.android.dex2jar.v4.node.TryCatchNode;
 import pxb.android.dex2jar.visitors.DexCodeVisitor;
 
 /**
@@ -74,22 +75,6 @@ public class DexCodeReader implements DexOpcodes {
 		this.dex = dex;
 		this.in = in;
 		this.method = method;
-	}
-
-	private static class TryCatchNode {
-		Label start;
-		Label end;
-		Label handler;
-		String type;
-
-		public TryCatchNode(Label start, Label end, Label handler, String type) {
-			super();
-			this.start = start;
-			this.end = end;
-			this.handler = handler;
-			this.type = type;
-		}
-
 	}
 
 	/**
@@ -162,19 +147,23 @@ public class DexCodeReader implements DexOpcodes {
 						}
 						order(start);
 						order(start + offset);
+						TryCatchNode tc = new TryCatchNode();
+						tcs.add(tc);
+						tc.start = this.labels.get(start);
+						tc.end = this.labels.get(start + offset);
 						for (int k = 0; k < listSize; k++) {
 							int type_id = (int) in.readUnsignedLeb128();
 							int handler = (int) in.readUnsignedLeb128() * 2;
 							tryEndOffsets.add(start + offset);
 							order(handler);
 							String type = dex.getType(type_id);
-							tcs.add(new TryCatchNode(this.labels.get(start), this.labels.get(start + offset), this.labels.get(handler), type));
+							tc.handlers.add(new TryCatchNode.HandlerPair(type, labels.get(handler)));
 						}
 						if (catchAll) {
 							int handler = (int) in.readUnsignedLeb128() * 2;
 							tryEndOffsets.add(start + offset);
 							order(handler);
-							tcs.add(new TryCatchNode(this.labels.get(start), this.labels.get(start + offset), this.labels.get(handler), null));
+							tc.handlers.add(new TryCatchNode.HandlerPair("Ljava/lang/Throwable;", labels.get(handler)));
 						}
 					} finally {
 						in.pop();
@@ -329,7 +318,14 @@ public class DexCodeReader implements DexOpcodes {
 			in.pop();
 		}
 		for (TryCatchNode tc : tcs) {
-			dcv.visitTryCatch(tc.start, tc.end, tc.handler, tc.type);
+			Label[] handlers = new Label[tc.handlers.size()];
+			String[] types = new String[handlers.length];
+			for (int i = 0; i < tc.handlers.size(); i++) {
+				TryCatchNode.HandlerPair hp = tc.handlers.get(i);
+				types[i] = hp.type;
+				handlers[i] = hp.label;
+			}
+			dcv.visitTryCatch(tc.start, tc.end, handlers, types);
 		}
 		tryEndOffsets = null;
 
@@ -354,10 +350,12 @@ public class DexCodeReader implements DexOpcodes {
 
 					String t = null;
 					Label h = labels.get(currentOffset);
-					for (TryCatchNode tc : tcs) {
-						if (tc.handler.equals(h)) {
-							t = tc.type;
-							break;
+					out: for (TryCatchNode tc : tcs) {
+						for (TryCatchNode.HandlerPair hp : tc.handlers) {
+							if (hp.type.equals(h)) {
+								t = hp.type;
+								break out;
+							}
 						}
 					}
 					tadoa.visit(opcode, a, null, t == null ? null : Type.getType(t));

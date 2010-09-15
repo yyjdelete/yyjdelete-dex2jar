@@ -574,10 +574,12 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 				info(-1, "try { // TC_%d ", trys.indexOf(tc));
 				break;
 			}
-			if (label.equals(tc.handler)) {
-				String t = tc.type;
-				info(-1, "catch(%s) // TC_%d", t == null ? "all" : t, trys.indexOf(tc));
-				break;
+			for (int i = 0; i < tc.handlers.length; i++) {
+				if (label.equals(tc.handlers[i])) {
+					String t = tc.types[i];
+					info(-1, "catch(%s) // TC_%d", t == null ? "all" : t, trys.indexOf(tc));
+					break;
+				}
 			}
 		}
 
@@ -713,38 +715,37 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 	}
 
 	private static class TryCatch {
-		public TryCatch(Label start, Label end, Label handler, String type) {
+		public TryCatch(Label start, Label end, Label[] handler, String[] type) {
 			super();
 			this.start = start;
 			this.end = end;
-			this.handler = handler;
-			this.type = type;
+			this.handlers = handler;
+			this.types = type;
 		}
 
 		public Label start;
 		public Label end;
-		public Label handler;
-		public String type;
+		public Label[] handlers;
+		public String[] types;
 	}
 
 	List<TryCatch> trys = new ArrayList<TryCatch>();
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see pxb.android.dex2jar.visitors.DexCodeAdapter#visitTryCatch(int, int, int, java.lang.String)
-	 */
 	@Override
-	public void visitTryCatch(Label start, Label end, Label handler, String type) {
-		TryCatch tc = new TryCatch(start, end, handler, type);
+	public void visitTryCatch(Label start, Label end, Label[] handlers, String[] types) {
+		TryCatch tc = new TryCatch(start, end, handlers, types);
 		trys.add(tc);
 		int id = trys.indexOf(tc);
-		if (type == null) {
-			out.printf("TR_%d L%s ~ L%s > L%s all\n", id, labels(start), labels(end), labels(handler));
-		} else {
-			out.printf("TR_%d L%s ~ L%s > L%s %s\n", id, labels(start), labels(end), labels(handler), type);
+		for (int i = 0; i < tc.handlers.length; i++) {
+			Label handler=tc.handlers[i];
+			String type=tc.types[i];
+			if (type == null) {
+				out.printf("TR_%d L%s ~ L%s > L%s all\n", id, labels(start), labels(end), labels(handler));
+			} else {
+				out.printf("TR_%d L%s ~ L%s > L%s %s\n", id, labels(start), labels(end), labels(handler), type);
+			}
 		}
-		super.visitTryCatch(start, end, handler, type);
+		super.visitTryCatch(start, end, handlers, types);
 	}
 
 	/*
