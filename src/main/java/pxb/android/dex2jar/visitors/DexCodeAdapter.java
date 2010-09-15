@@ -171,8 +171,8 @@ public class DexCodeAdapter implements DexCodeVisitor {
 		dcv.visitTableSwitchInsn(opcode, reg, firstCase, lastCase, defaultLabel, labels);
 	}
 
-	public void visitTryCatch(Label start, Label end, Label handler, String type) {
-		dcv.visitTryCatch(start, end, handler, type);
+	public void visitTryCatch(Label start, Label end, Label[] handlers, String[] types) {
+		dcv.visitTryCatch(start, end, handlers, types);
 	}
 
 	/*

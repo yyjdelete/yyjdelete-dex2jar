@@ -369,11 +369,11 @@ public interface DexCodeVisitor {
 	 * 
 	 * @param start
 	 * @param end
-	 * @param handler
-	 * @param type
-	 *            may null
+	 * @param handlers
+	 * @param types
+	 *            element may null
 	 */
-	void visitTryCatch(Label start, Label end, Label handler, String type);
+	void visitTryCatch(Label start, Label end, Label[] handlers, String[] types);
 
 	/**
 	 * <pre>

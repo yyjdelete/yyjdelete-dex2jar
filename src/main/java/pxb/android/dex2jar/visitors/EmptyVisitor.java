@@ -210,7 +210,7 @@ public class EmptyVisitor implements DexFileVisitor, DexClassVisitor, DexMethodV
 	public void visitTableSwitchInsn(int opcode, int reg, int firstCase, int lastCase, Label defaultLabel, Label[] labels) {
 	}
 
-	public void visitTryCatch(Label start, Label end, Label handler, String type) {
+	public void visitTryCatch(Label start, Label end, Label[] handlers, String[] types) {
 	}
 
 	/*

@@ -60,6 +60,10 @@ import pxb.android.dex2jar.visitors.DexCodeVisitor;
  * @version $Id$
  */
 public class DexCodeNode implements DexCodeVisitor, Opcodes, DexOpcodes {
+	
+	public int[] argIndexes;
+	public Type[] argTypes;
+	
 	/**
 	 * @param method
 	 * @param mv
@@ -69,6 +73,8 @@ public class DexCodeNode implements DexCodeVisitor, Opcodes, DexOpcodes {
 	}
 
 	public void visitInitLocal(int[] args, Type[] types) {
+		argIndexes = args;
+		argTypes = types;
 	}
 
 	public InsnList insnList = new InsnList();
@@ -568,13 +574,7 @@ public class DexCodeNode implements DexCodeVisitor, Opcodes, DexOpcodes {
 	 * 
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitTryCatch(int, int, int, java.lang.String)
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void visitTryCatch(Label start, Label end, Label handler, String type) {
-		// mv.visitTryCatchBlock(start, end, handler, type);
-		if (type == null) {
-			type = Type.getDescriptor(Throwable.class);
-		}
-		handlers.put(handler, Type.getType(type));
+	public void visitTryCatch(Label start, Label end, Label handlers[], String[] types) {
 
 		TryCatchNode t = new TryCatchNode();
 		t.start = start;
@@ -584,10 +584,15 @@ public class DexCodeNode implements DexCodeVisitor, Opcodes, DexOpcodes {
 		} else {
 			tryCatches.add(t);
 		}
-		if (type == null) {
-			type = "";
+		for (int i = 0; i < handlers.length; i++) {
+			String type = types[i];
+			Label handler = handlers[i];
+			if (type == null) {
+				type = Type.getDescriptor(Throwable.class);
+			}
+			this.handlers.put(handler, Type.getType(type));
+			t.handlers.add(new HandlerPair(type, handler));
 		}
-		t.handlers.add(new HandlerPair(type, handler));
 	}
 
 	protected Set<Integer> NEW_INS = new HashSet<Integer>();
