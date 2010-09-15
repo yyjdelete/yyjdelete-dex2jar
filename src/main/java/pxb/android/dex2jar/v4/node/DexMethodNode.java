@@ -21,6 +21,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.MethodNode;
 
 import pxb.android.dex2jar.Method;
+import pxb.android.dex2jar.v4.optimize.A;
 import pxb.android.dex2jar.visitors.AnnotationAble;
 import pxb.android.dex2jar.visitors.DexCodeVisitor;
 import pxb.android.dex2jar.visitors.DexMethodVisitor;

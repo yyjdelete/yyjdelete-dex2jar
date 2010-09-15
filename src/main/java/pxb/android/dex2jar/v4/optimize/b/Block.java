@@ -32,22 +32,30 @@ public class Block {
 	public List<Block> froms = new ArrayList<Block>();
 	public List<Block> to = new ArrayList<Block>();
 
-	protected int id = idc++;
+	public List<TC> tcs = new ArrayList<TC>();
+
+	protected final int id = idc++;
 
 	public static int idc = 0;
 
 	public Label nextLabel;
 
+	public Block nextBlock;
+
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		if (label != null) {
-			sb.append("Block ").append(id).append('\n');
+			sb.append("B").append(id).append(":\n");
 		}
 		for (Insn insn : this.insns) {
 			sb.append(insn).append('\n');
 		}
-		if (nextLabel != null) {
-			sb.append("next: ").append(nextLabel).append('\n');
+		if (nextBlock == null) {
+			if (nextLabel != null) {
+				sb.append("next: ").append(nextLabel).append('\n');
+			}
+		} else {
+			sb.append("next: B").append(nextBlock.id).append('\n');
 		}
 		return sb.toString();
 	}

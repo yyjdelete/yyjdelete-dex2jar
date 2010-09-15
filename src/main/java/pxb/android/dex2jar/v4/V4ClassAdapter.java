@@ -24,6 +24,7 @@ import org.objectweb.asm.Opcodes;
 import pxb.android.dex2jar.Field;
 import pxb.android.dex2jar.Method;
 import pxb.android.dex2jar.v4.node.DexMethodNode;
+import pxb.android.dex2jar.v4.optimize.A;
 import pxb.android.dex2jar.visitors.DexClassVisitor;
 import pxb.android.dex2jar.visitors.DexFieldVisitor;
 import pxb.android.dex2jar.visitors.DexMethodVisitor;
@@ -95,7 +96,10 @@ public class V4ClassAdapter implements DexClassVisitor {
 
                 @Override
                 public void visitEnd() {
-                    super.visitEnd();
+					super.visitEnd();
+					if (codeNode != null) {
+						new A().optmize(this);
+					}
                     this.accept(mv);
                 }
             };

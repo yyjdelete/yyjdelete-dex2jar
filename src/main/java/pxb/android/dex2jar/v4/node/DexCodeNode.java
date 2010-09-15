@@ -15,7 +15,6 @@
  */
 package pxb.android.dex2jar.v4.node;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,6 +31,7 @@ import pxb.android.dex2jar.DexOpcodeDump;
 import pxb.android.dex2jar.DexOpcodes;
 import pxb.android.dex2jar.Field;
 import pxb.android.dex2jar.Method;
+import pxb.android.dex2jar.v4.node.TryCatchNode.HandlerPair;
 import pxb.android.dex2jar.v4.tree.ArrayFn;
 import pxb.android.dex2jar.v4.tree.AsmdFn;
 import pxb.android.dex2jar.v4.tree.CmpFn;
@@ -587,7 +587,7 @@ public class DexCodeNode implements DexCodeVisitor, Opcodes, DexOpcodes {
 		if (type == null) {
 			type = "";
 		}
-		t.handlers.add(new AbstractMap.SimpleEntry(type, handler));
+		t.handlers.add(new HandlerPair(type, handler));
 	}
 
 	protected Set<Integer> NEW_INS = new HashSet<Integer>();

@@ -17,26 +17,23 @@ package pxb.android.dex2jar.v4.optimize;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.objectweb.asm.Label;
 
-import pxb.android.dex2jar.v4.node.DexCodeNode;
+import pxb.android.dex2jar.v4.node.DexMethodNode;
 import pxb.android.dex2jar.v4.node.TryCatchNode;
+import pxb.android.dex2jar.v4.node.TryCatchNode.HandlerPair;
 import pxb.android.dex2jar.v4.optimize.b.Block;
-import pxb.android.dex2jar.v4.tree.EndFn;
+import pxb.android.dex2jar.v4.optimize.b.TC;
 import pxb.android.dex2jar.v4.tree.Fn;
 import pxb.android.dex2jar.v4.tree.GotoFn;
 import pxb.android.dex2jar.v4.tree.Insn;
 import pxb.android.dex2jar.v4.tree.InsnList;
-import pxb.android.dex2jar.v4.tree.JumpFn;
 import pxb.android.dex2jar.v4.tree.LabelFn;
 import pxb.android.dex2jar.v4.tree.RegValue;
 import pxb.android.dex2jar.v4.tree.StaticValue;
-import pxb.android.dex2jar.v4.tree.SwitchFn;
 
 /**
  * @author Panxiaobo [pxb1988@gmail.com]
@@ -44,21 +41,55 @@ import pxb.android.dex2jar.v4.tree.SwitchFn;
  */
 public class A {
 
-	Set<Insn> set = new HashSet();
+	List<Block> blocks;
+	List<TC> tcs;
+	Map<Label, Block> map;
 
-	public void a(DexCodeNode codeNode) {
-		List<Block> blocks = cut(codeNode.insnList);
-		Block root = link(blocks, codeNode.tryCatches);
+	public void optmize(DexMethodNode codeNode) {
+		blocks = cut(codeNode.codeNode.insnList);
+		map = generateMap();
+		tcs = link(map, blocks, codeNode.codeNode.tryCatches);
 	}
 
-	public Block link(List<Block> blocks, List<TryCatchNode> trys) {
-		Map<Label, Block> map = new HashMap();
+	public Map<Label, Block> generateMap() {
+		Map<Label, Block> map = new HashMap<Label, Block>();
 		for (Block block : blocks) {
 			if (block.label != null) {
 				map.put(block.label, block);
 			}
 		}
-		return null;
+		return map;
+	}
+
+	public static List<TC> link(Map<Label, Block> map, List<Block> blocks, List<TryCatchNode> methodNodeTCs) {
+
+		for (Block block : blocks) {
+			if (block.nextLabel != null) {
+				block.nextBlock = map.get(block.nextLabel);
+			}
+		}
+		ArrayList<TC> tcs = new ArrayList<TC>();
+		for (TryCatchNode tr : methodNodeTCs) {
+			TC t = new TC();
+			tcs.add(t);
+			int i = blocks.indexOf(map.get(tr.start));
+			if (i < 0) {
+				throw new RuntimeException("try-catch start label NOT found");
+			}
+			for (; i < blocks.size(); i++) {
+				Block b = blocks.get(i);
+				if (b.label == tr.end) {
+					break;
+				} else {
+					t.blocks.add(b);
+					b.tcs.add(t);
+				}
+			}
+			for (HandlerPair e : tr.handlers) {
+				t.handlers.add(new TC.HandlerPair(e.type, map.get(e.label)));
+			}
+		}
+		return tcs;
 	}
 
 	<T> T last(List<T> list) {

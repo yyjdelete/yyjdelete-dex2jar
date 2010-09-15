@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pxb.android.dex2jar.v4.node;
+package pxb.android.dex2jar.v4.optimize.b;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
 
 /**
  * @author Panxiaobo [pxb1988@gmail.com]
  * 
  */
-public class TryCatchNode {
+public class TC {
+	public List<Block> blocks = new ArrayList<Block>();
+	public List<HandlerPair> handlers = new ArrayList<HandlerPair>();
 
 	public static class HandlerPair {
 
@@ -33,40 +34,28 @@ public class TryCatchNode {
 		 * @param type
 		 * @param label
 		 */
-		public HandlerPair(String type, Label label) {
+		public HandlerPair(String type, Block b) {
 			super();
 			this.type = type;
-			this.label = label;
+			this.block = b;
 		}
 
 		public String type;
-		public Label label;
+		public Block block;
 	}
 
-	public Label start, end;
-	public List<HandlerPair> handlers = new ArrayList<HandlerPair>();
-
-	public int hashCode() {
-		return start.hashCode() * 32 + end.hashCode();
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		for (Block b : blocks) {
+			sb.append(",").append("B").append(b.id);
+		}
+		sb.deleteCharAt(0);
+		String s = sb.toString();
+		sb.setLength(0);
+		for (HandlerPair e : handlers) {
+			String type = e.type == null ? type = "all" : Type.getType(e.type).getClassName();
+			sb.append("} catch(").append(type).append(" e) {\n").append("B").append(e.block.id).append("\n}");
+		}
+		return "try {\n" + s + "\n" + sb;
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		TryCatchNode t = (TryCatchNode) obj;
-		return start.equals(t.start) && end.equals(t.end);
-	}
-
-	/**
-	 * @param mv
-	 */
-	public void accept(MethodVisitor mv) {
-		for (HandlerPair e : handlers)
-			mv.visitTryCatchBlock(start, end, e.label, e.type);
-	}
-
 }
