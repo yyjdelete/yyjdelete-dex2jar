@@ -413,27 +413,6 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 		case OP_CMPG_FLOAT:
 			info(opcode, "%s = %s - %s", v(saveToReg), v(opValueOrReg), v(opReg));
 			break;
-		case OP_MUL_INT_LIT16:
-			info(opcode, "%s = %s * %d", v(saveToReg), v(opReg), opValueOrReg);
-			break;
-		case OP_DIV_INT_LIT16:
-			info(opcode, "%s = %s / %d", v(saveToReg), v(opReg), opValueOrReg);
-			break;
-		case OP_REM_INT_LIT16:
-			info(opcode, "%s = %s %% %d", v(saveToReg), v(opReg), opValueOrReg);
-			break;
-		case OP_ADD_INT_LIT16:
-			info(opcode, "%s = %s + %d", v(saveToReg), v(opReg), opValueOrReg);
-			break;
-		case OP_AND_INT_LIT16:
-			info(opcode, "%s = %s & %d", v(saveToReg), v(opReg), opValueOrReg);
-			break;
-		case OP_OR_INT_LIT16:
-			info(opcode, "%s = %s | %d", v(saveToReg), v(opReg), opValueOrReg);
-			break;
-		case OP_XOR_INT_LIT16:
-			info(opcode, "%s = %s ^ %d", v(saveToReg), v(opReg), opValueOrReg);
-			break;
 		case OP_AND_INT_LIT8:
 			info(opcode, "%s = %s & %d", v(saveToReg), v(opReg), opValueOrReg);
 			break;
@@ -490,14 +469,14 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 	 * @see pxb.android.dex2jar.visitors.DexCodeAdapter#visitJumpInsn(int, int)
 	 */
 	@Override
-	public void visitJumpInsn(int opcode, Label label) {
+	public void jump(int opcode, Label label) {
 		switch (opcode) {
 		case OP_GOTO:
 		case OP_GOTO_16:
 			info(opcode, "goto L%s", labels(label));
 			break;
 		}
-		super.visitJumpInsn(opcode, label);
+		super.jump(opcode, label);
 	}
 
 	public void visitJumpInsn(int opcode, Label label, int reg) {
@@ -648,7 +627,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 	 * @see pxb.android.dex2jar.visitors.DexCodeAdapter#visitMethodInsn(int, pxb.android.dex2jar.Method, int[])
 	 */
 	@Override
-	public void visitMethodInsn(int opcode, Method method, int[] regs, int saveTo) {
+	public void invoke(int opcode, Method method, int[] regs, int saveTo) {
 
 		switch (opcode) {
 		case OP_INVOKE_STATIC: {
@@ -695,7 +674,7 @@ public class DumpDexCodeAdapter extends DexCodeAdapter implements DexOpcodes {
 		}
 			break;
 		}
-		super.visitMethodInsn(opcode, method, regs, saveTo);
+		super.invoke(opcode, method, regs, saveTo);
 	}
 
 	/*

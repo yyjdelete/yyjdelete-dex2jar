@@ -182,7 +182,7 @@ public class EmptyVisitor implements DexFileVisitor, DexClassVisitor, DexMethodV
 	 * 
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitMethodInsn(int, pxb.android.dex2jar.Method, int[])
 	 */
-	public void visitMethodInsn(int opcode, Method method, int[] args, int saveTo) {
+	public void invoke(int opcode, Method method, int[] args, int saveTo) {
 
 	}
 
@@ -192,7 +192,7 @@ public class EmptyVisitor implements DexFileVisitor, DexClassVisitor, DexMethodV
 	public void visitJumpInsn(int opcode, Label label, int reg) {
 	}
 
-	public void visitJumpInsn(int opcode, Label label) {
+	public void jump(int opcode, Label label) {
 	}
 
 	public void visitLabel(Label label) {

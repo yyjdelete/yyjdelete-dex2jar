@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import pxb.android.dex2jar.DataIn;
 import pxb.android.dex2jar.Dex;
 import pxb.android.dex2jar.DexOpcodeDump;
-import pxb.android.dex2jar.DexOpcodeUtil;
 import pxb.android.dex2jar.DexOpcodes;
 import pxb.android.dex2jar.Method;
 import pxb.android.dex2jar.v4.node.TryCatchNode;
@@ -181,11 +180,11 @@ public class DexCodeReader implements DexOpcodes {
 		}
 		// 查找标签
 		in.push();
+		in.pushPosition();
 		try {
-			for (int baseOffset = in.getCurrentPosition(), currentOffset = 0; currentOffset < instruction_size * 2; currentOffset = in.getCurrentPosition()
-				- baseOffset) {
+			for (int currentOffset = in.getCurrentOffset(); currentOffset < instruction_size * 2; currentOffset = in.getCurrentOffset()) {
 				int opcode = in.readByte() & 0xff;
-				int size = DexOpcodeUtil.getSize(opcode);
+				int size = 0;//TODO
 				switch (size) {
 				case 1: {
 					int a = in.readByte();
@@ -315,6 +314,7 @@ public class DexCodeReader implements DexOpcodes {
 				}
 			}
 		} finally {
+			in.popPosition();
 			in.pop();
 		}
 		for (TryCatchNode tc : tcs) {
@@ -329,15 +329,16 @@ public class DexCodeReader implements DexOpcodes {
 		}
 		tryEndOffsets = null;
 
+
 		// 处理指令
-		int currentOffset = 0;
-		for (int baseOffset = in.getCurrentPosition(); currentOffset < instruction_size * 2; currentOffset = in.getCurrentPosition()
-				- baseOffset) {
+		in.pushPosition();
+		int currentOffset = in.getCurrentOffset();
+		for (; currentOffset < instruction_size * 2; currentOffset = in.getCurrentOffset()) {
 			int opcode = in.readByte() & 0xff;
 			if (labels.containsKey(currentOffset))
 				dcv.visitLabel(labels.get(currentOffset));
 
-			int size = DexOpcodeUtil.getSize(opcode);
+			int size = 0;//TODO
 			switch (size) {
 			case 1: {
 				int a = in.readByte();
@@ -531,6 +532,7 @@ public class DexCodeReader implements DexOpcodes {
 						break;
 					}
 				} finally {
+					in.popPosition();
 					in.pop();
 				}
 			}

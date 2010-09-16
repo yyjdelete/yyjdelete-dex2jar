@@ -256,13 +256,12 @@ public interface DexCodeVisitor {
 	/**
 	 * <pre>
 	 * case OP_GOTO:
-	 * case OP_GOTO_16:
 	 * </pre>
 	 * 
 	 * @param opcode
 	 * @param label
 	 */
-	void visitJumpInsn(int opcode, Label label);
+	void jump(int opcode, Label label);
 
 	/**
 	 * <pre>
@@ -352,7 +351,7 @@ public interface DexCodeVisitor {
 	 * @param regs
 	 * @param saveTo
 	 */
-	void visitMethodInsn(int opcode, Method method, int[] args, int saveTo);
+	void invoke(int opcode, Method method, int[] args, int saveTo);
 
 	/**
 	 * 
