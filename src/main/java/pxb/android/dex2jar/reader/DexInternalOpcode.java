@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pxb.android.dex2jar;
+package pxb.android.dex2jar.reader;
 
 /**
  * @author Panxiaobo
  * 
  */
-public interface DexInternalOpcode {
+interface DexInternalOpcode {
 
 	public static final int OP_UNUSED_3e = 62;
 	public static final int OP_UNUSED_3f = 63;
@@ -37,6 +37,14 @@ public interface DexInternalOpcode {
 	public static final int OP_UNUSED_79 = 121;
 	public static final int OP_UNUSED_7A = 122;
 
+	public static final int OP_ADD_INT_LIT16 = 208;
+	public static final int OP_RSUB_INT = 209;
+	public static final int OP_MUL_INT_LIT16 = 210;
+	public static final int OP_DIV_INT_LIT16 = 211;
+	public static final int OP_REM_INT_LIT16 = 212;
+	public static final int OP_AND_INT_LIT16 = 213;
+	public static final int OP_OR_INT_LIT16 = 214;
+	public static final int OP_XOR_INT_LIT16 = 215;
 	public static final int OP_UNUSED_E3 = 227;
 	public static final int OP_UNUSED_E4 = 228;
 	public static final int OP_UNUSED_E5 = 229;
@@ -51,10 +59,21 @@ public interface DexInternalOpcode {
 
 	public static final int OP_UNUSED_EF = 239;
 
+	public static final int OP_INVOKE_DIRECT_EMPTY = 240;
 	public static final int OP_UNUSED_F1 = 241;
-
+	public static final int OP_IGET_QUICK = 242;
+	public static final int OP_IGET_WIDE_QUICK = 243;
+	public static final int OP_IGET_OBJECT_QUICK = 244;
+	public static final int OP_IPUT_QUICK = 245;
+	public static final int OP_IPUT_WIDE_QUICK = 246;
+	public static final int OP_IPUT_OBJECT_QUICK = 247;
+	public static final int OP_INVOKE_VIRTUAL_QUICK = 248;
+	public static final int OP_INVOKE_VIRTUAL_QUICK_RANGE = 249;
+	public static final int OP_INVOKE_SUPER_QUICK = 250;
+	public static final int OP_INVOKE_SUPER_QUICK_RANGE = 251;
 	public static final int OP_UNUSED_FC = 252;
 	public static final int OP_UNUSED_FD = 253;
 	public static final int OP_UNUSED_FE = 254;
 	public static final int OP_UNUSED_FF = 255;
+	
 }

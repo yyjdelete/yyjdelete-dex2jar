@@ -43,12 +43,14 @@ public class DataInImpl implements DataIn {
 	}
 
 	Stack<Integer> stack = new Stack<Integer>();
+	Stack<Integer> positionStack = new Stack<Integer>();
 	XByteArrayInputStream in;
 
 	/**
 	 * @param in
 	 */
 	public DataInImpl(byte[] data) {
+		positionStack.push(0);
 		in = new XByteArrayInputStream(data);
 	}
 
@@ -200,10 +202,31 @@ public class DataInImpl implements DataIn {
 		return ((long) readIntx()) | (((long) readIntx()) << 32);
 	}
 
+
 	/* (non-Javadoc)
-	 * @see pxb.android.dex2jar.DataIn#getCurrentPosition()
+	 * @see pxb.android.dex2jar.DataIn#pushPosition()
 	 */
 	@Override
+	public void pushPosition() {
+		this.positionStack.push(this.in.getPos());
+	}
+
+	/* (non-Javadoc)
+	 * @see pxb.android.dex2jar.DataIn#popPosition()
+	 */
+	@Override
+	public void popPosition() {
+		this.positionStack.pop();
+	}
+
+	/* (non-Javadoc)
+	 * @see pxb.android.dex2jar.DataIn#getCurrentOffset()
+	 */
+	@Override
+	public int getCurrentOffset() {
+		return this.in.getPos() - positionStack.peek();
+	}
+
 	public int getCurrentPosition() {
 		return  this.in.getPos();
 	}

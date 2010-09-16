@@ -336,17 +336,6 @@ public class DexCodeNode implements DexCodeVisitor, Opcodes, DexOpcodes {
 			insnList.add(saveToReg, new AsmdFn(Type.INT_TYPE, opcode - OP_ADD_INT_LIT8, new RegValue(opReg), new StaticValue(opValueOrReg)));
 			break;
 
-		case OP_ADD_INT_LIT16:
-		case OP_RSUB_INT:
-		case OP_MUL_INT_LIT16:
-		case OP_DIV_INT_LIT16:
-		case OP_REM_INT_LIT16:
-		case OP_AND_INT_LIT16:
-		case OP_OR_INT_LIT16:
-		case OP_XOR_INT_LIT16:
-			insnList.add(saveToReg, new AsmdFn(Type.INT_TYPE, opcode - OP_ADD_INT_LIT16, new RegValue(opReg), new StaticValue(opValueOrReg)));
-			break;
-
 		case OP_ADD_INT:
 		case OP_SUB_INT:
 		case OP_MUL_INT:
@@ -420,7 +409,7 @@ public class DexCodeNode implements DexCodeVisitor, Opcodes, DexOpcodes {
 	 * 
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitJumpInsn(int, int)
 	 */
-	public void visitJumpInsn(int opcode, Label label) {
+	public void jump(int opcode, Label label) {
 		switch (opcode) {
 		case OP_GOTO:
 		case OP_GOTO_16: {
@@ -532,7 +521,7 @@ public class DexCodeNode implements DexCodeVisitor, Opcodes, DexOpcodes {
 	 * 
 	 * @see pxb.android.dex2jar.visitors.DexCodeVisitor#visitMethodInsn(int, pxb.android.dex2jar.Method, int[])
 	 */
-	public void visitMethodInsn(int opcode, Method method, int[] args, int saveTo) {
+	public void invoke(int opcode, Method method, int[] args, int saveTo) {
 		Value[] argValues = new Value[args.length];
 
 		for (int i = 0; i < args.length; i++) {

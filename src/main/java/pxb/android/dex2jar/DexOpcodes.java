@@ -218,14 +218,6 @@ public abstract interface DexOpcodes {
 	public static final int OP_MUL_DOUBLE_2ADDR = 205;
 	public static final int OP_DIV_DOUBLE_2ADDR = 206;
 	public static final int OP_REM_DOUBLE_2ADDR = 207;
-	public static final int OP_ADD_INT_LIT16 = 208;
-	public static final int OP_RSUB_INT = 209;
-	public static final int OP_MUL_INT_LIT16 = 210;
-	public static final int OP_DIV_INT_LIT16 = 211;
-	public static final int OP_REM_INT_LIT16 = 212;
-	public static final int OP_AND_INT_LIT16 = 213;
-	public static final int OP_OR_INT_LIT16 = 214;
-	public static final int OP_XOR_INT_LIT16 = 215;
 	public static final int OP_ADD_INT_LIT8 = 216;
 	public static final int OP_RSUB_INT_LIT8 = 217;
 	public static final int OP_MUL_INT_LIT8 = 218;
@@ -239,18 +231,5 @@ public abstract interface DexOpcodes {
 	public static final int OP_USHR_INT_LIT8 = 226;
 
 	public static final int OP_EXECUTE_INLINE = 238;
-
-	public static final int OP_INVOKE_DIRECT_EMPTY = 240;
-
-	public static final int OP_IGET_QUICK = 242;
-	public static final int OP_IGET_WIDE_QUICK = 243;
-	public static final int OP_IGET_OBJECT_QUICK = 244;
-	public static final int OP_IPUT_QUICK = 245;
-	public static final int OP_IPUT_WIDE_QUICK = 246;
-	public static final int OP_IPUT_OBJECT_QUICK = 247;
-	public static final int OP_INVOKE_VIRTUAL_QUICK = 248;
-	public static final int OP_INVOKE_VIRTUAL_QUICK_RANGE = 249;
-	public static final int OP_INVOKE_SUPER_QUICK = 250;
-	public static final int OP_INVOKE_SUPER_QUICK_RANGE = 251;
 
 }

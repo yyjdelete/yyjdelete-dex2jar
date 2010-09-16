@@ -19,7 +19,6 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
 
 import pxb.android.dex2jar.Dex;
-import pxb.android.dex2jar.DexInternalOpcode;
 import pxb.android.dex2jar.DexOpcodeDump;
 import pxb.android.dex2jar.DexOpcodes;
 import pxb.android.dex2jar.Field;
@@ -123,7 +122,7 @@ public class DexOpcodeAdapter implements DexOpcodes, DexInternalOpcode {
 		}
 			break;
 		case OP_GOTO: {
-			dcv.visitJumpInsn(opcode, toLabel);
+			dcv.jump(opcode, toLabel);
 		}
 			break;
 		case OP_RETURN_VOID: {
@@ -365,7 +364,7 @@ public class DexOpcodeAdapter implements DexOpcodes, DexInternalOpcode {
 		}
 			break;
 		case OP_GOTO_16: {
-			dcv.visitJumpInsn(opcode, to);
+			dcv.jump(opcode, to);
 		}
 			break;
 		case OP_MOVE_OBJECT_FROM16:
@@ -389,7 +388,7 @@ public class DexOpcodeAdapter implements DexOpcodes, DexInternalOpcode {
 			Method m = dex.getMethod(arg2);
 			int args[] = getValues(arg1, arg3);
 			args = filter(m, args);
-			dcv.visitMethodInsn(opcode, m, args, invokeMethodSaveToReg);
+			dcv.invoke(opcode, m, args, invokeMethodSaveToReg);
 		}
 			break;
 		case OP_INVOKE_VIRTUAL_RANGE:
@@ -404,7 +403,7 @@ public class DexOpcodeAdapter implements DexOpcodes, DexInternalOpcode {
 			Method m = dex.getMethod(arg2);
 			args = filter(m, args);
 			// 转换成非Range的指令
-			dcv.visitMethodInsn(opcode - 6, m, args, invokeMethodSaveToReg);
+			dcv.invoke(opcode - 6, m, args, invokeMethodSaveToReg);
 		}
 			break;
 		case OP_CONST: {
