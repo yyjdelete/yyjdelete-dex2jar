@@ -15,12 +15,13 @@
  */
 package com.googlecode.dex2jar.optimize;
 
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.TreeSet;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -73,8 +74,8 @@ public class LocalSpliteTransformer implements MethodTransformer, Opcodes {
      */
     @Override
     public void transform(MethodNode method) {
-        InsnList il = method.instructions;
-        Map<Integer, ValueBox>[] frames = new HashMap[il.size()];
+        final InsnList il = method.instructions;
+        Map<Integer, ValueBox>[] frames = new Map[il.size()];
         int index = 0;
         Map<Integer, ValueBox> init = new HashMap();
         if ((method.access & ACC_STATIC) == 0) {
@@ -90,16 +91,25 @@ public class LocalSpliteTransformer implements MethodTransformer, Opcodes {
         ValueBox[] vbs = new ValueBox[ilSize];
         Set<LabelNode>[] exs = new Set[ilSize];
 
-        for (Iterator it = method.tryCatchBlocks.iterator(); it.hasNext();) {
-            TryCatchBlockNode tcbn = (TryCatchBlockNode) it.next();
-            for (AbstractInsnNode p = tcbn.start.getNext(); p != null && p != tcbn.end; p = p.getNext()) {
-                int i = il.indexOf(p);
-                Set<LabelNode> set = exs[i];
-                if (set == null) {
-                    set = new HashSet();
-                    exs[i] = set;
+        if (method.tryCatchBlocks.size() > 0) {
+            Comparator<LabelNode> c = new Comparator<LabelNode>() {
+
+                @Override
+                public int compare(LabelNode o1, LabelNode o2) {
+                    return il.indexOf(o1) - il.indexOf(o2);
                 }
-                set.add(tcbn.handler);
+            };
+            for (Iterator it = method.tryCatchBlocks.iterator(); it.hasNext();) {
+                TryCatchBlockNode tcbn = (TryCatchBlockNode) it.next();
+                for (AbstractInsnNode p = tcbn.start.getNext(); p != null && p != tcbn.end; p = p.getNext()) {
+                    int i = il.indexOf(p);
+                    Set<LabelNode> set = exs[i];
+                    if (set == null) {
+                        set = new TreeSet<LabelNode>(c);
+                        exs[i] = set;
+                    }
+                    set.add(tcbn.handler);
+                }
             }
         }
 
