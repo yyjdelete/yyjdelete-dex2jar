@@ -160,26 +160,21 @@ public class V3MethodAdapter implements DexMethodVisitor, Opcodes {
         build();
         MethodNode methodNode = this.methodNode;
 
-        try {
-            if (methodNode.instructions.size() > 2) {
-                List<? extends MethodTransformer> trs = Arrays.asList(new LocalSpliteTransformer(), new GotoEndTransformer(), new B(),
-                        new TypeDetectTransformer(this.method.getOwner()));
-                for (MethodTransformer tr : trs) {
-//                    TraceMethodVisitor tmv = new TraceMethodVisitor();
-//                    methodNode.instructions.accept(tmv);
-//                    StringBuilder sb = new StringBuilder();
-//                    int i = 0;
-//                    for (Object o : tmv.text) {
-//                        sb.append(i++).append(o);
-//                    }
-//                    System.out.println(sb);
-                    tr.transform(methodNode);
-                }
+        if (methodNode.instructions.size() > 2) {
+            List<? extends MethodTransformer> trs = Arrays.asList(new LocalSpliteTransformer(), new GotoEndTransformer(), new B(), new TypeDetectTransformer(
+                    this.method.getOwner()));
+            for (MethodTransformer tr : trs) {
+//                TraceMethodVisitor tmv = new TraceMethodVisitor();
+//                methodNode.instructions.accept(tmv);
+//                StringBuilder sb = new StringBuilder();
+//                int i = 0;
+//                for (Object o : tmv.text) {
+//                    sb.append(i++).append(o);
+//                }
+//                System.out.println(sb);
+                tr.transform(methodNode);
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Error transform method:" + this.method, e);
         }
-
         MethodVisitor mv = cv.visitMethod(methodNode.access, methodNode.name, methodNode.desc, methodNode.signature,
                 (String[]) methodNode.exceptions.toArray(new String[methodNode.exceptions.size()]));
         if (mv != null) {

@@ -42,6 +42,8 @@ import org.objectweb.asm.tree.TryCatchBlockNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
+import com.googlecode.dex2jar.DexException;
+
 /**
  * @author Panxiaobo [pxb1988 at gmail.com]
  * 
@@ -177,9 +179,11 @@ public class TypeDetectTransformer implements MethodTransformer, Opcodes {
                     node = nNode;
                 }
             }
-
-            exec(node, tmp, afterStack, ret);
-
+            try {
+                exec(node, tmp, afterStack, ret);
+            } catch (Exception e) {
+                throw new DexException(e, "while exec insn at %d", i);
+            }
             int opcode = node.getOpcode();
             if (node.getType() == AbstractInsnNode.JUMP_INSN) {
                 if (opcode == GOTO) {
@@ -300,6 +304,9 @@ public class TypeDetectTransformer implements MethodTransformer, Opcodes {
     }
 
     void req(ValueBox v, Type type) {
+        if (v == null) {
+            System.out.println("123");
+        }
         Type vt = v.value.type;
         if (vt == null) {
             v.value.type = type;

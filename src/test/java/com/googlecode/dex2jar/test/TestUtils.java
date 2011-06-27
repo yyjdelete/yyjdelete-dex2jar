@@ -16,16 +16,17 @@
 package com.googlecode.dex2jar.test;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
@@ -34,9 +35,23 @@ import java.util.zip.ZipFile;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.TryCatchBlockNode;
+import org.objectweb.asm.tree.analysis.Analyzer;
+import org.objectweb.asm.tree.analysis.AnalyzerException;
+import org.objectweb.asm.tree.analysis.BasicValue;
+import org.objectweb.asm.tree.analysis.BasicVerifier;
+import org.objectweb.asm.tree.analysis.Frame;
+import org.objectweb.asm.tree.analysis.Value;
+import org.objectweb.asm.util.AbstractVisitor;
 import org.objectweb.asm.util.CheckClassAdapter;
+import org.objectweb.asm.util.TraceMethodVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.googlecode.dex2jar.DexException;
 
 /**
  * @author Panxiaobo [pxb1988@gmail.com]
@@ -79,7 +94,7 @@ public abstract class TestUtils {
         return dex(files, null);
     }
 
-    public static void checkZipFile(File zip) throws ZipException, IOException {
+    public static void checkZipFile(File zip) throws ZipException, Exception {
         ZipFile zipFile = new ZipFile(zip);
         for (Enumeration<? extends ZipEntry> e = zipFile.entries(); e.hasMoreElements();) {
             ZipEntry entry = e.nextElement();
@@ -89,13 +104,89 @@ public abstract class TestUtils {
                 PrintWriter pw = new PrintWriter(sw);
                 InputStream is = zipFile.getInputStream(entry);
                 try {
-                    CheckClassAdapter.verify(new ClassReader(IOUtils.toByteArray(is)), false, pw);
+                    verify(new ClassReader(IOUtils.toByteArray(is)));
                 } finally {
                     IOUtils.closeQuietly(is);
                 }
                 Assert.assertTrue(sw.toString(), sw.toString().length() == 0);
             }
         }
+    }
+
+    public static void verify(final ClassReader cr) throws AnalyzerException, IllegalArgumentException, IllegalAccessException {
+        ClassNode cn = new ClassNode();
+        cr.accept(new CheckClassAdapter(cn, false), ClassReader.SKIP_DEBUG);
+
+        Type syperType = cn.superName == null ? null : Type.getObjectType(cn.superName);
+        List methods = cn.methods;
+
+        List interfaces = new ArrayList();
+        for (Iterator i = cn.interfaces.iterator(); i.hasNext();) {
+            interfaces.add(Type.getObjectType(i.next().toString()));
+        }
+
+        for (int i = 0; i < methods.size(); ++i) {
+            MethodNode method = (MethodNode) methods.get(i);
+            BasicVerifier verifier = new BasicVerifier();
+            Analyzer a = new Analyzer(verifier);
+            try {
+                a.analyze(cn.name, method);
+            } catch (Exception e) {
+                printAnalyzerResult(method, a, new PrintWriter(System.out));
+                throw new DexException("method " + method.name + " " + method.desc, e);
+            }
+        }
+    }
+
+    static Field buf;
+    static {
+        try {
+            buf = AbstractVisitor.class.getDeclaredField("buf");
+        } catch (NoSuchFieldException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (SecurityException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        buf.setAccessible(true);
+
+    }
+
+    static void printAnalyzerResult(MethodNode method, Analyzer a, final PrintWriter pw) throws IllegalArgumentException, IllegalAccessException {
+        Frame[] frames = a.getFrames();
+        TraceMethodVisitor mv = new TraceMethodVisitor();
+        String format = "%05d %-" + (method.maxStack + method.maxLocals + 6) + "s|%s";
+        pw.println(method.name + method.desc);
+        for (int j = 0; j < method.instructions.size(); ++j) {
+            method.instructions.get(j).accept(mv);
+
+            StringBuffer s = new StringBuffer();
+            Frame f = frames[j];
+            if (f == null) {
+                s.append('?');
+            } else {
+                for (int k = 0; k < f.getLocals(); ++k) {
+                    s.append(getShortName(f.getLocal(k).toString()));
+                }
+                s.append(" : ");
+                for (int k = 0; k < f.getStackSize(); ++k) {
+                    s.append(getShortName(f.getStack(k).toString()));
+                }
+            }
+            pw.printf(format, j, s, buf.get(mv)); // mv.text.get(j));
+        }
+        for (int j = 0; j < method.tryCatchBlocks.size(); ++j) {
+            ((TryCatchBlockNode) method.tryCatchBlocks.get(j)).accept(mv);
+            pw.print(" " + buf.get(mv));
+        }
+        pw.println();
+        pw.flush();
+    }
+
+    private static String getShortName(final String name) {
+        int n = name.lastIndexOf('/');
+        return n == -1 ? name : "o";
     }
 
     public static void breakPoint() {
