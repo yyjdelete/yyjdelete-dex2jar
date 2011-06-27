@@ -157,7 +157,6 @@ public abstract class TestUtils {
         Frame[] frames = a.getFrames();
         TraceMethodVisitor mv = new TraceMethodVisitor();
         String format = "%05d %-" + (method.maxStack + method.maxLocals + 6) + "s|%s";
-        pw.println(method.name + method.desc);
         for (int j = 0; j < method.instructions.size(); ++j) {
             method.instructions.get(j).accept(mv);
 

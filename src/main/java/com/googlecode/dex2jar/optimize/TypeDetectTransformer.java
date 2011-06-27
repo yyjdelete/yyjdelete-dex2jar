@@ -70,6 +70,10 @@ public class TypeDetectTransformer implements MethodTransformer, Opcodes {
             super();
             this.value = local;
         }
+
+        public String toString() {
+            return "" + value;
+        }
     }
 
     static class Value {
@@ -84,6 +88,10 @@ public class TypeDetectTransformer implements MethodTransformer, Opcodes {
             super();
             this.type = type;
             this.noTouch = noTouch;
+        }
+
+        public String toString() {
+            return "" + type;
         }
     }
 
@@ -290,20 +298,36 @@ public class TypeDetectTransformer implements MethodTransformer, Opcodes {
                     case IF_ACMPNE:
                     case IF_ICMPEQ:
                     case IF_ICMPNE:
-                        if (type.equals(Type.INT_TYPE) || type.equals(Type.BOOLEAN_TYPE)) {
+                        switch (type.getSort()) {
+                        case Type.INT:
+                        case Type.SHORT:
+                        case Type.CHAR:
+                        case Type.BOOLEAN:
+                        case Type.BYTE: {
                             JumpInsnNode node2 = new JumpInsnNode(op == IF_ACMPNE ? IF_ICMPNE : IF_ICMPEQ, ((JumpInsnNode) node).label);
                             il.set(node, node2);
-                        } else {
+                        }
+                            break;
+                        case Type.OBJECT:
+                        case Type.ARRAY: {
                             JumpInsnNode node2 = new JumpInsnNode(op == IF_ICMPNE ? IF_ACMPNE : IF_ACMPEQ, ((JumpInsnNode) node).label);
                             il.set(node, node2);
                         }
-                        break;
+                            break;
+                        case Type.FLOAT:
+                        case Type.LONG:
+                        case Type.DOUBLE:
+                            break;
+                        }
                     }
-
                 } else if (type != null) {// ldc
                     LdcInsnNode ldc = (LdcInsnNode) node;
                     switch (type.getSort()) {
                     case Type.INT:
+                    case Type.SHORT:
+                    case Type.CHAR:
+                    case Type.BOOLEAN:
+                    case Type.BYTE:
                         break;
                     case Type.OBJECT:
                     case Type.ARRAY:

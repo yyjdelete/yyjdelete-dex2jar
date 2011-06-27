@@ -121,7 +121,8 @@ public class V3ClassAdapter implements DexClassVisitor {
                 accessInClass |= Opcodes.ACC_SUPER;// 解决生成的class文件使用dx重新转换时使用的指令与原始指令不同的问题
             }
 
-            accessInClass &= ~Opcodes.ACC_STATIC; // access in class has no acc_static
+            // access in class has no acc_static or acc_private
+            accessInClass &= ~(Opcodes.ACC_STATIC | Opcodes.ACC_PRIVATE);
 
             cv.visit(Opcodes.V1_6, accessInClass, className, signature, superClass, interfaceNames);
 

@@ -163,16 +163,10 @@ public class V3MethodAdapter implements DexMethodVisitor, Opcodes {
         if (methodNode.instructions.size() > 2) {
             List<? extends MethodTransformer> trs = Arrays.asList(new LocalSpliteTransformer(), new GotoEndTransformer(), new B(), new TypeDetectTransformer(
                     this.method.getOwner()));
+//            dump(methodNode);
             for (MethodTransformer tr : trs) {
-//                TraceMethodVisitor tmv = new TraceMethodVisitor();
-//                methodNode.instructions.accept(tmv);
-//                StringBuilder sb = new StringBuilder();
-//                int i = 0;
-//                for (Object o : tmv.text) {
-//                    sb.append(i++).append(o);
-//                }
-//                System.out.println(sb);
                 tr.transform(methodNode);
+//                dump(methodNode);
             }
         }
         MethodVisitor mv = cv.visitMethod(methodNode.access, methodNode.name, methodNode.desc, methodNode.signature,
@@ -184,6 +178,17 @@ public class V3MethodAdapter implements DexMethodVisitor, Opcodes {
                 throw new RuntimeException("Error visit method:" + this.method, e);
             }
         }
+    }
+
+    void dump(MethodNode methodNode) {
+        TraceMethodVisitor tmv = new TraceMethodVisitor();
+        methodNode.instructions.accept(tmv);
+        StringBuilder sb = new StringBuilder();
+        int i = 0;
+        for (Object o : tmv.text) {
+            sb.append(i++).append(o);
+        }
+        System.out.println(sb);
     }
 
     /*
