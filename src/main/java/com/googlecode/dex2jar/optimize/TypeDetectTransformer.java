@@ -269,23 +269,44 @@ public class TypeDetectTransformer implements MethodTransformer, Opcodes {
                     }
                 } else if (node.getType() == AbstractInsnNode.JUMP_INSN) {
                     int op = node.getOpcode();
-                    if (type.equals(Type.INT_TYPE)) {
-                        if (op == IFNULL || op == IFNONNULL) {
-                            JumpInsnNode node2 = new JumpInsnNode(op == IFNULL ? IFEQ : IFNE, ((JumpInsnNode) node).label);
+                    switch (op) {
+                    case IFNE:
+                    case IFEQ:
+                    case IFNULL:
+                    case IFNONNULL:
+                        if (type.equals(Type.INT_TYPE) || type.equals(Type.BOOLEAN_TYPE)) {
+                            if (op == IFNULL || op == IFNONNULL) {
+                                JumpInsnNode node2 = new JumpInsnNode(op == IFNULL ? IFEQ : IFNE, ((JumpInsnNode) node).label);
+                                il.set(node, node2);
+                            }
+                        } else {
+                            if (op == IFEQ || op == IFNE) {
+                                JumpInsnNode node2 = new JumpInsnNode(op == IFEQ ? IFNULL : IFNONNULL, ((JumpInsnNode) node).label);
+                                il.set(node, node2);
+                            }
+                        }
+                        break;
+                    case IF_ACMPEQ:
+                    case IF_ACMPNE:
+                    case IF_ICMPEQ:
+                    case IF_ICMPNE:
+                        if (type.equals(Type.INT_TYPE) || type.equals(Type.BOOLEAN_TYPE)) {
+                            JumpInsnNode node2 = new JumpInsnNode(op == IF_ACMPNE ? IF_ICMPNE : IF_ICMPEQ, ((JumpInsnNode) node).label);
+                            il.set(node, node2);
+                        } else {
+                            JumpInsnNode node2 = new JumpInsnNode(op == IF_ICMPNE ? IF_ACMPNE : IF_ACMPEQ, ((JumpInsnNode) node).label);
                             il.set(node, node2);
                         }
-                    } else {
-                        if (op == IFEQ || op == IFNE) {
-                            JumpInsnNode node2 = new JumpInsnNode(op == IFEQ ? IFNULL : IFNONNULL, ((JumpInsnNode) node).label);
-                            il.set(node, node2);
-                        }
+                        break;
                     }
+
                 } else if (type != null) {// ldc
                     LdcInsnNode ldc = (LdcInsnNode) node;
                     switch (type.getSort()) {
                     case Type.INT:
                         break;
                     case Type.OBJECT:
+                    case Type.ARRAY:
                         ldc.cst = null;
                         break;
                     case Type.FLOAT:
@@ -765,7 +786,9 @@ public class TypeDetectTransformer implements MethodTransformer, Opcodes {
             case IF_ICMPNE:
             case IF_ACMPEQ:
             case IF_ACMPNE:
-                same(stack.pop(), stack.pop());
+                ValueBox vb = stack.pop();
+                vbs[il.indexOf(node)] = vb;
+                same(vb, stack.pop());
                 break;
             case IF_ICMPLT:
             case IF_ICMPGE:

@@ -16,14 +16,25 @@
 package com.googlecode.dex2jar.test;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Test;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.googlecode.dex2jar.ClassVisitorFactory;
+import com.googlecode.dex2jar.DexException;
+import com.googlecode.dex2jar.reader.DexFileReader;
 import com.googlecode.dex2jar.v3.Main;
+import com.googlecode.dex2jar.v3.V3;
+import com.googlecode.dex2jar.v3.V3AccessFlagsAdapter;
 
 /**
  * @author Panxiaobo [pxb1988@gmail.com]
@@ -39,12 +50,48 @@ public class V3Test {
             for (File f : FileUtils.listFiles(file, new String[] { "dex", "zip", "apk" }, false)) {
                 log.info("dex2jar file {}", f);
                 File distFile = new File(f.getParentFile(), FilenameUtils.getBaseName(f.getName()) + "_dex2jar.jar");
-                Main.doFile(f, distFile);
-                TestUtils.checkZipFile(distFile);
+                doData(Main.readClasses(f), distFile);
             }
         } catch (Exception e) {
             Main.niceExceptionMessage(log, e, 0);
             throw e;
         }
     }
+
+    public static void doData(byte[] data, File destJar) throws IOException {
+        final ZipOutputStream zos = new ZipOutputStream(FileUtils.openOutputStream(destJar));
+
+        DexFileReader reader = new DexFileReader(data);
+        V3AccessFlagsAdapter afa = new V3AccessFlagsAdapter();
+        reader.accept(afa);
+        reader.accept(new V3(afa.getAccessFlagsMap(), afa.getInnerNameMap(), afa.getExtraMember(), new ClassVisitorFactory() {
+            public ClassVisitor create(final String name) {
+                return new ClassWriter(ClassWriter.COMPUTE_MAXS) {
+                    /*
+                     * (non-Javadoc)
+                     * 
+                     * @see org.objectweb.asm.ClassWriter#visitEnd()
+                     */
+                    @Override
+                    public void visitEnd() {
+                        super.visitEnd();
+                        try {
+                            byte[] data = this.toByteArray();
+                            log.info("verify {}", name);
+                            TestUtils.verify(new ClassReader(data));
+                            ZipEntry entry = new ZipEntry(name + ".class");
+                            zos.putNextEntry(entry);
+                            zos.write(data);
+                            zos.closeEntry();
+                        } catch (Exception e) {
+                            throw new DexException(e);
+                        }
+                    }
+                };
+            }
+        }));
+        zos.finish();
+        zos.close();
+    }
+
 }
