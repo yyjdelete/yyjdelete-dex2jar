@@ -688,6 +688,14 @@ public class V3CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
     public void visitInInsn(int opcode, int saveToReg, int opReg, int opValueOrReg) {
         checkResult();
         switch (opcode) {
+        case OP_RSUB_INT_LIT8: {
+            mv.visitLdcInsn(opValueOrReg);
+            mv.visitVarInsn(ILOAD, map(opReg));
+            mv.visitInsn(DexOpcodeUtil.mapOpcode(opcode));
+            mv.visitVarInsn(ISTORE, map(saveToReg));
+            stack(2);
+        }
+            break;
         case OP_USHR_INT_LIT8:
         case OP_SHR_INT_LIT8:
         case OP_SHL_INT_LIT8:
@@ -705,7 +713,13 @@ public class V3CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
             stack(2);
         }
             break;
-
+        case OP_RSUB_INT: {
+            mv.visitVarInsn(ILOAD, map(opReg));
+            mv.visitVarInsn(ILOAD, map(opValueOrReg));
+            mv.visitInsn(DexOpcodeUtil.mapOpcode(opcode));
+            mv.visitVarInsn(ISTORE, map(saveToReg));
+            stack(2);
+        }
         case OP_AND_LONG:
         case OP_AND_INT:
         case OP_OR_LONG:

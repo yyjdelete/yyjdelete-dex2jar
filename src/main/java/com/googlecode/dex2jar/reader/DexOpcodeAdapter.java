@@ -385,6 +385,7 @@ public class DexOpcodeAdapter implements DexOpcodes, DexInternalOpcode {
             break;
         case OP_ADD_INT:
         case OP_SUB_INT:
+        case OP_RSUB_INT:
         case OP_MUL_INT:
         case OP_DIV_INT:
         case OP_REM_INT:
