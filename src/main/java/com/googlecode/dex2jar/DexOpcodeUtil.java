@@ -218,6 +218,7 @@ public final class DexOpcodeUtil implements DexOpcodes, Opcodes, DexInternalOpco
 
         case OP_ADD_INT:
         case OP_SUB_INT:
+        case OP_RSUB_INT:
         case OP_MUL_INT:
         case OP_DIV_INT:
         case OP_REM_INT:
@@ -318,6 +319,8 @@ public final class DexOpcodeUtil implements DexOpcodes, Opcodes, DexInternalOpco
      */
     public static int mapOpcode(int dexOpcode) {
         switch (dexOpcode) {
+        case OP_RSUB_INT_LIT8:
+            return ISUB;
         case OP_ADD_INT_LIT8:
             return IADD;
         case OP_MUL_INT_LIT8:
@@ -458,6 +461,7 @@ public final class DexOpcodeUtil implements DexOpcodes, Opcodes, DexInternalOpco
             return FSUB;
         case OP_SUB_DOUBLE:
             return DSUB;
+        case OP_RSUB_INT:
         case OP_SUB_INT:
             return ISUB;
         case OP_SUB_LONG:
