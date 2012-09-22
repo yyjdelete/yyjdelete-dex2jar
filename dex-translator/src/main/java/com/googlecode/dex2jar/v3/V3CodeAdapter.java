@@ -71,8 +71,6 @@ import static com.googlecode.dex2jar.ir.stmt.Stmts.nReturnVoid;
 import static com.googlecode.dex2jar.ir.stmt.Stmts.nTableSwitch;
 import static com.googlecode.dex2jar.ir.stmt.Stmts.nThrow;
 import static com.googlecode.dex2jar.ir.stmt.Stmts.nUnLock;
-import static com.googlecode.dex2jar.ir.stmt.Stmts.nLocVar;
-import static com.googlecode.dex2jar.ir.stmt.Stmts.nLineNum;
 
 import java.util.Arrays;
 
@@ -645,11 +643,11 @@ public class V3CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 
     @Override
     public void visitLineNumber(int line, DexLabel label) {
-        list.add(nLineNum(line, toLabelStmt(label)));
+        // TODO
     }
 
     @Override
     public void visitLocalVariable(String name, String type, String signature, DexLabel start, DexLabel end, int reg) {
-        list.add(nLocVar(name, type, signature, toLabelStmt(start), toLabelStmt(end), locals[reg]));
+        // TODO
     }
 }

@@ -34,8 +34,6 @@ public class EndRemover implements Transformer {
                 }
                 break;
             case LABEL:
-            case LINENUMBER:
-            case LOCALVARIABLE:
             case NOP:
             case UNLOCK:
                 break;
@@ -67,7 +65,6 @@ public class EndRemover implements Transformer {
                     for (Stmt p = js.target.getNext(); !end; p = p.getNext()) {
                         switch (p.st) {
                         case LABEL:
-                        case LINENUMBER:
                             break;
                         case GOTO:
                             LabelStmt target = ((JumpStmt) p).target;
