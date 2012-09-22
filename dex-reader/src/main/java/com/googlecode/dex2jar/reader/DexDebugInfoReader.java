@@ -126,7 +126,7 @@ import com.googlecode.dex2jar.visitors.DexCodeVisitor;
             }
                 break;
             case DBG_ADVANCE_LINE: {
-                int offset = (int) in.readLeb128();//readULeb128->readLeb128
+                int offset = (int) in.readULeb128();
                 line += offset;
             }
                 break;
