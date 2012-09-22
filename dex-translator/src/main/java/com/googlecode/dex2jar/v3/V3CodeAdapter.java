@@ -154,12 +154,39 @@ public class V3CodeAdapter implements DexCodeVisitor, Opcodes, DexOpcodes {
 
     @Override
     public void visitArrayStmt(int opcode, int formOrToReg, int arrayReg, int indexReg, int xt) {
+        Type type;
+        switch(xt) {
+        case TYPE_SINGLE:// treat as INT
+            type = Type.INT_TYPE;
+            break;
+        case TYPE_WIDE:// treat as LONG
+            type = Type.LONG_TYPE;
+            break;
+        case TYPE_OBJECT:
+            type = Type.getType(Object.class);
+            break;
+        case TYPE_BOOLEAN:
+            type = Type.BOOLEAN_TYPE;
+            break;
+        case TYPE_BYTE:
+            type = Type.BYTE_TYPE;
+            break;
+        case TYPE_CHAR:
+            type = Type.CHAR_TYPE;
+            break;
+        case TYPE_SHORT:
+            type = Type.SHORT_TYPE;
+            break;
+        default:
+            //Others won't be used here
+            throw new RuntimeException();
+        }
         switch (opcode) {
         case OP_APUT:
-            list.add(nAssign(nArray(locals[arrayReg], locals[indexReg]), locals[formOrToReg]));
+            list.add(nAssign(nArray(locals[arrayReg], locals[indexReg], type), locals[formOrToReg]));
             break;
         case OP_AGET:
-            list.add(nAssign(locals[formOrToReg], nArray(locals[arrayReg], locals[indexReg])));
+            list.add(nAssign(locals[formOrToReg], nArray(locals[arrayReg], locals[indexReg], type)));
             break;
         }
     }

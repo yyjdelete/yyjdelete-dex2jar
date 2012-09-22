@@ -15,6 +15,8 @@
  */
 package com.googlecode.dex2jar.ir.expr;
 
+import org.objectweb.asm.Type;
+
 import com.googlecode.dex2jar.ir.Value;
 import com.googlecode.dex2jar.ir.Value.E2Expr;
 import com.googlecode.dex2jar.ir.ValueBox;
@@ -28,6 +30,7 @@ import com.googlecode.dex2jar.ir.ValueBox;
  * @version $Rev$
  */
 public class ArrayExpr extends E2Expr {
+	public Type type = null;
 
     public ArrayExpr() {
         super(VT.ARRAY, null, null);
@@ -37,9 +40,14 @@ public class ArrayExpr extends E2Expr {
         super(VT.ARRAY, new ValueBox(base), new ValueBox(index));
     }
 
-    @Override
+    public ArrayExpr(Value base, Value index, Type type) {
+        super(VT.ARRAY, new ValueBox(base), new ValueBox(index));
+        this.type = type;
+	}
+
+	@Override
     public Value clone() {
-        return new ArrayExpr(op1.value.clone(), op2.value.clone());
+        return new ArrayExpr(op1.value.clone(), op2.value.clone(), type);
     }
 
     @Override

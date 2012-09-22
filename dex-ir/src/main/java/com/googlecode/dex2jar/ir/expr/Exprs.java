@@ -51,6 +51,10 @@ public final class Exprs {
         return new ArrayExpr(base, index);
     }
 
+    public static ArrayExpr nArray(Value base, Value index, Type type) {
+        return new ArrayExpr(base, index, type);
+    }
+
     public static CastExpr nCast(Value obj, Type from, Type to) {
         return new CastExpr(obj, from, to);
     }

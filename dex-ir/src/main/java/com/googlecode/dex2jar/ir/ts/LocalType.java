@@ -22,6 +22,7 @@ import com.googlecode.dex2jar.ir.IrMethod;
 import com.googlecode.dex2jar.ir.Value;
 import com.googlecode.dex2jar.ir.Value.E2Expr;
 import com.googlecode.dex2jar.ir.Value.VT;
+import com.googlecode.dex2jar.ir.expr.ArrayExpr;
 import com.googlecode.dex2jar.ir.expr.CastExpr;
 import com.googlecode.dex2jar.ir.expr.FieldExpr;
 import com.googlecode.dex2jar.ir.expr.FilledArrayExpr;
@@ -77,16 +78,37 @@ public class LocalType implements Transformer {
     }
 
     public static Type merge(Type t2, Type t1) {
+        if (t1.getSort() == Type.ARRAY && t2.getSort() != Type.ARRAY) {
+            return t1;
+        }
+        Type elementType = t1;
         if (t1.getSort() == Type.ARRAY) {
+            elementType = t1.getElementType();
+        }
+        //fix TYPE_SINGLE and TYPE_WIDE
+        if (elementType.getSort() == Type.FLOAT || elementType.getSort() == Type.DOUBLE) {
             return t1;
         }
         return t2;
     }
 
     public static boolean needMerge(Type t1, Type t2) {
+        if (t1.equals(t2)) {
+            return true;
+        }
         if ((t1.getSort() == Type.ARRAY && t2.getSort() == Type.OBJECT) || 
         		(t2.getSort() == Type.ARRAY && t1.getSort() == Type.OBJECT)) {
             return true;
+        }
+        //fix TYPE_SINGLE
+        if ((t1.getSort() == Type.INT && t2.getSort() == Type.FLOAT) || 
+        		(t1.getSort() == Type.FLOAT && t2.getSort() == Type.INT)) {
+        	return true;
+        }
+        //fix TYPE_WIDE
+        if ((t1.getSort() == Type.LONG && t2.getSort() == Type.DOUBLE) || 
+        		(t1.getSort() == Type.DOUBLE && t2.getSort() == Type.LONG)) {
+        	return true;
         }
         return false;
     }
@@ -197,8 +219,18 @@ public class LocalType implements Transformer {
             TypeBox tb2 = exec(((E2Expr) v).op2.value);
             switch (v.vt) {
             case ARRAY:
-                // TODO associate array expr types
-                type(tb1, Type.getType(Object.class));
+                ArrayExpr ae = (ArrayExpr) v;
+                if(ae.type != null) {
+                    if(ae.type.getSort() == Type.INT || ae.type.getSort() == Type.LONG) {
+                        //TYPE_SINGLE and TYPE_WIDE is not reliable
+                        type(tb1, Type.getType(Object.class));
+                    } else {
+                        type(tb1, Type.getType("[" + ae.type.getDescriptor()));
+                    }
+                    type(tb, ae.type);
+                } else {
+                    type(tb1, Type.getType(Object.class));
+                }
                 type(tb2, Type.INT_TYPE);
                 break;
             case ADD:
@@ -305,6 +337,7 @@ public class LocalType implements Transformer {
         	tb1.xtype.tb = tb2;
         	tb1.xtype = tb2.xtype;
         	tb2.xtype.type = nt;
+        	return;
         }
     }
 

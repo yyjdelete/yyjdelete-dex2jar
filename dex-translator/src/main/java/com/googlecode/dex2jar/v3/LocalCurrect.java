@@ -128,7 +128,11 @@ public class LocalCurrect implements Transformer {
     private Type detectArray(E2Expr e2) {
         Type t1 = LocalType.typeOf(e2);
         Type t2 = LocalType.typeOf(e2.op1.value);
-        if (t2 == null) {
+        
+        if (t2 == null || t2.getSort() == Type.OBJECT) {
+            if(fixArray(t1, e2.op1.value))
+                return t1;
+            
             if (e2.op1.value.vt == VT.ARRAY) {
                 Type t3 = detectArray((E2Expr) e2.op1.value);
                 if (t3 != null) {
@@ -140,14 +144,36 @@ public class LocalCurrect implements Transformer {
                 }
             }
         }
-        if (t2 != null && t2.getSort() == Type.ARRAY) {
-            Type nT1 = Type.getType(t2.getDescriptor().substring(1));
-            if (!nT1.equals(t1)) {
-                LocalType.type(e2, nT1);
-                return nT1;
+        if(fixArray(t1, e2.op1.value))
+            return t1;
+        if (t2 != null) {
+            if(t2.getSort() == Type.ARRAY) {
+                Type nT1 = Type.getType(t2.getDescriptor().substring(1));
+                if (!nT1.equals(t1)) {
+                    LocalType.type(e2, nT1);
+                    return nT1;
+                }
             }
         }
         return t1;
+    }
+    
+    private boolean fixArray(Type childType, Value parent) {
+        if(childType != null) {
+            Type elementType = childType;
+            if (childType.getSort() == Type.ARRAY) {
+                elementType = childType.getElementType();
+            }
+            //fix TYPE_SINGLE and TYPE_WIDE
+            if (elementType.getSort() == Type.FLOAT || elementType.getSort() == Type.DOUBLE) {
+                Type parentType = Type.getType("[" + childType.getDescriptor());
+                LocalType.type(parent, parentType);
+                if(parent.vt == VT.ARRAY)
+                    detectArray((E2Expr) parent);
+                return true;
+            }
+        }
+        return false;
     }
 
     private void currectCstInExpr(ValueBox vb) {
